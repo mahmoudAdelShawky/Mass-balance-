@@ -4,27 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pallet Room Manager Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* --- Professional Theming & Layout --- */
         :root {
-            --primary-color: #007bff;
-            --primary-hover: #0056b3;
-            --secondary-color: #6c757d;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #17a2b8;
-            --light-bg: #f8f9fa;
-            --dark-text: #212529;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #64748b;
+            --success-color: #16a34a;
+            --danger-color: #dc2626;
+            --warning-color: #f59e0b;
+            --info-color: #0ea5e9;
+            --light-bg: #f1f5f9;
+            --dark-text: #0f172a;
             --light-text: #ffffff;
-            --border-color: #dee2e6;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
             --border-radius: 8px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #e9ecef;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light-bg);
             color: var(--dark-text);
             margin: 0;
             padding: 15px;
@@ -37,29 +42,30 @@
             margin: 0 auto;
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: 24px;
         }
 
         h1, h2, h3 {
-            color: #1a253c;
+            color: var(--dark-text);
             margin-top: 0;
         }
-        h1 { font-size: 1.8rem; }
-        h2 { font-size: 1.4rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;}
+        h1 { font-size: 2rem; font-weight: 700; }
+        h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 24px; font-weight: 600;}
+        h3 { font-size: 1.25rem; font-weight: 600; }
 
         .card {
             background: var(--light-text);
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            padding: 25px;
-            box-shadow: var(--shadow);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
         }
         
         /* --- Icons --- */
         .icon {
             display: inline-block;
-            width: 1em;
-            height: 1em;
+            width: 1.2em;
+            height: 1.2em;
             stroke-width: 0;
             stroke: currentColor;
             fill: currentColor;
@@ -74,21 +80,22 @@
             gap: 20px;
         }
         .stat-card {
-            background-color: var(--light-bg);
-            padding: 15px;
+            background-color: var(--light-text);
+            padding: 20px;
             border-radius: var(--border-radius);
             text-align: center;
             border: 1px solid var(--border-color);
         }
         .stat-card .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
+            font-size: 2.25rem;
+            font-weight: 700;
             color: var(--primary-color);
         }
         .stat-card .stat-label {
             font-size: 0.9rem;
             color: var(--secondary-color);
             margin-top: 5px;
+            font-weight: 500;
         }
         .stat-card.expired .stat-value { color: var(--danger-color); }
 
@@ -97,24 +104,25 @@
         #room-layout {
             display: flex;
             justify-content: space-between;
-            background: #495057;
-            padding: 15px;
+            background: #334155;
+            padding: 16px;
             border-radius: var(--border-radius);
+            box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.1);
         }
 
         .pallet-aisle {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            width: 47%;
+            gap: 12px;
+            width: 47.5%;
         }
 
         #center-aisle {
-            width: 6%;
+            width: 5%;
         }
 
         .pallet {
-            height: 60px;
+            height: 65px;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
@@ -122,20 +130,21 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 13px;
+            font-size: 14px;
             color: var(--light-text);
             font-weight: 600;
-            border: 2px solid transparent;
+            border: 1px solid rgba(255,255,255,0.2);
             text-align: center;
             overflow: hidden;
             padding: 4px;
             box-sizing: border-box;
             position: relative;
+            background-image: linear-gradient(rgba(255,255,255,0.05), rgba(0,0,0,0.05));
         }
         
         .pallet:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-lg);
         }
 
         .pallet span {
@@ -146,33 +155,28 @@
             text-overflow: ellipsis;
             line-height: 1.4;
         }
-        .pallet .pallet-label { font-size: 0.9em; }
-        .pallet .pallet-timer { font-size: 1.1em; letter-spacing: 0.5px; }
+        .pallet .pallet-label { font-size: 0.9em; font-weight: 500; }
+        .pallet .pallet-timer { font-size: 1.1em; letter-spacing: 0.5px; font-weight: 700; }
 
 
         .pallet.empty {
             background-color: var(--secondary-color);
-            border-color: #8d99ae;
         }
         .pallet.recently-discharged {
             background-color: var(--info-color);
-            border-color: #117a8b;
         }
 
         .pallet.occupied {
             background-color: var(--primary-color);
-            border-color: var(--primary-hover);
         }
 
         .pallet.expired {
             background-color: var(--danger-color);
-            border-color: #a71d2a;
             animation: pulse 1.5s infinite;
         }
         
         .pallet.snapshot-discharged {
             background-color: var(--info-color);
-            border-color: #117a8b;
         }
         .pallet.snapshot-discharged::after {
             content: 'D';
@@ -190,9 +194,9 @@
 
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+            70% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
         }
 
         /* --- Controls & Navigation --- */
@@ -211,18 +215,20 @@
             padding: 10px 15px;
             border-radius: 6px 6px 0 0;
             cursor: pointer;
-            background-color: var(--light-bg);
-            color: var(--primary-color);
+            background-color: transparent;
+            color: var(--secondary-color);
             font-weight: 600;
-            border: 1px solid var(--border-color);
+            border: 2px solid transparent;
             border-bottom: none;
-            transition: background-color 0.2s, color 0.2s;
+            transition: all 0.2s;
+            margin-bottom: -2px;
         }
-        .room-tab:hover { background-color: #e2e6ea; }
+        .room-tab:hover { color: var(--primary-color); }
         .room-tab.active {
-            background-color: var(--primary-color);
-            color: var(--light-text);
-            border-color: var(--primary-color);
+            background-color: var(--light-text);
+            color: var(--primary-color);
+            border-color: var(--border-color);
+            border-bottom: 2px solid var(--light-text);
         }
 
         .controls-container {
@@ -247,13 +253,13 @@
             right: 0;
             top: 100%;
             background-color: var(--light-text);
-            min-width: 220px;
-            box-shadow: var(--shadow);
+            min-width: 240px;
+            box-shadow: var(--shadow-lg);
             border-radius: var(--border-radius);
             z-index: 10;
             border: 1px solid var(--border-color);
             overflow: hidden;
-            padding: 5px 0;
+            padding: 8px 0;
         }
         .menu-dropdown.show {
             display: block;
@@ -267,12 +273,17 @@
             text-align: left;
             font-weight: 500;
             border-radius: 0;
+            font-size: 0.95rem;
         }
         .menu-item:hover {
             background-color: var(--light-bg);
+            color: var(--primary-color);
         }
          .menu-item .icon {
             color: var(--secondary-color);
+        }
+        .menu-item:hover .icon {
+            color: var(--primary-color);
         }
 
 
@@ -291,7 +302,7 @@
             justify-content: center;
         }
         button:hover, .btn:hover {
-            opacity: 0.85;
+            opacity: 0.9;
             transform: translateY(-1px);
         }
         button:disabled {
@@ -311,10 +322,16 @@
             background-color: var(--light-text);
             font-size: 0.95rem;
             font-weight: 500;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
 
         .pallet.selected {
-            box-shadow: 0 0 0 3px var(--success-color), inset 0 0 0 30px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 0 0 3px var(--success-color), inset 0 0 0 30px rgba(22, 163, 74, 0.3);
             transform: scale(1.05);
         }
         #storage-room-view.multi-select-active .pallet { cursor: copy; }
@@ -392,9 +409,12 @@
             border-radius: var(--border-radius);
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: var(--shadow-lg);
             transform: scale(0.95);
             transition: transform 0.3s ease;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
         }
         .modal-backdrop.visible .modal-content {
             transform: scale(1);
@@ -404,11 +424,18 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h3 { margin: 0; }
 
+        .modal-body-scrollable {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 10px; /* For scrollbar spacing */
+        }
+
         .modal-actions {
             margin-top: 25px;
             display: flex;
             justify-content: flex-end;
             gap: 10px;
+            flex-shrink: 0; /* Prevent actions from shrinking */
         }
         #snapshot-modal { z-index: 1001; }
         #details-alert-modal { z-index: 1002; }
@@ -428,7 +455,23 @@
         .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        .cooking-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        fieldset {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 25px;
+        }
+        legend {
+            padding: 0 10px;
+            font-weight: 600;
+            color: var(--dark-text);
         }
         
         .details-section {
@@ -572,6 +615,7 @@
             .input-group input { margin-bottom: 5px; border-radius: 6px; }
             .input-group button { border-radius: 6px; }
             .modal-content { width: 95%; padding: 20px; }
+            .cooking-form-grid { grid-template-columns: 1fr; }
 
             #aisle-filter {
                 display: flex;
@@ -648,7 +692,7 @@
                     Cancel Selection
                 </button>
 
-                <div class="menu-container">
+                <div id="menu-container" class="menu-container">
                     <button id="menu-toggle-btn" class="btn">
                          Actions
                          <svg class="icon" style="margin-right:0; margin-left: 8px;" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg>
@@ -697,7 +741,7 @@
             <div class="modal-header">
                  <h3 id="modal-title">Pallet Details</h3>
             </div>
-            <div id="modal-body"></div>
+            <div id="modal-body" class="modal-body-scrollable"></div>
             <div class="modal-actions">
                 <button id="modal-close-btn" class="btn">Close</button>
                 <button id="modal-update-btn" class="btn btn-primary" style="display: none;"></button>
@@ -705,21 +749,34 @@
             </div>
         </div>
     </div>
+    
+    <div id="cooking-modal" class="modal-backdrop">
+        <div class="modal-content large">
+            <h3 id="cooking-modal-title">Assign Cooking Batch</h3>
+            <div id="cooking-modal-body" class="modal-body-scrollable"></div>
+             <div class="modal-actions">
+                <button id="cooking-modal-close-btn" class="btn">Cancel</button>
+                <button id="cooking-modal-confirm-btn" class="btn btn-success">Assign to Pallets</button>
+            </div>
+        </div>
+    </div>
 
     <div id="discharge-modal" class="modal-backdrop">
         <div class="modal-content">
              <h3 id="discharge-modal-title">Discharge Pallet</h3>
-            <div class="form-field">
-                <label for="discharge-cartons">Number of Cartons Packed</label>
-                <input type="number" id="discharge-cartons" placeholder="e.g., 50">
-            </div>
-             <div class="form-field">
-                <label for="discharge-unit">Unit</label>
-                <input type="text" id="discharge-unit" placeholder="e.g., PCS">
-            </div>
-            <div class="form-field">
-                <label for="discharge-scrap">Scrap (kg)</label>
-                <input type="number" step="0.1" id="discharge-scrap" placeholder="e.g., 2.5">
+            <div class="modal-body-scrollable">
+                <div class="form-field">
+                    <label for="discharge-cartons">Number of Cartons Packed</label>
+                    <input type="number" id="discharge-cartons" placeholder="e.g., 50">
+                </div>
+                <div class="form-field">
+                    <label for="discharge-unit">Unit</label>
+                    <input type="text" id="discharge-unit" placeholder="e.g., PCS">
+                </div>
+                <div class="form-field">
+                    <label for="discharge-scrap">Scrap (kg)</label>
+                    <input type="number" step="0.1" id="discharge-scrap" placeholder="e.g., 2.5">
+                </div>
             </div>
             <div class="modal-actions">
                 <button id="discharge-modal-close-btn" class="btn">Cancel</button>
@@ -731,7 +788,7 @@
     <div id="details-alert-modal" class="modal-backdrop">
         <div class="modal-content">
             <h3 id="details-alert-title">Details</h3>
-            <div id="details-alert-body"></div>
+            <div id="details-alert-body" class="modal-body-scrollable"></div>
             <div class="modal-actions">
                 <button id="details-alert-close-btn" class="btn">Close</button>
             </div>
@@ -741,7 +798,9 @@
     <div id="confirm-modal" class="modal-backdrop">
         <div class="modal-content">
             <h3 id="confirm-modal-title">Are you sure?</h3>
-            <p id="confirm-modal-body"></p>
+            <div class="modal-body-scrollable">
+                <p id="confirm-modal-body"></p>
+            </div>
             <div class="modal-actions">
                 <button id="confirm-modal-cancel-btn" class="btn">Cancel</button>
                 <button id="confirm-modal-confirm-btn" class="btn btn-danger">Confirm</button>
@@ -799,16 +858,24 @@
     <div id="settings-modal" class="modal-backdrop">
         <div class="modal-content large">
             <h2>Settings & Fields</h2>
-            <p>Configure default hold duration and manage custom pallet fields.</p>
-            <div class="input-group">
-                <input type="number" id="duration-input" placeholder="e.g., 36">
-                <button id="save-duration-btn" class="btn btn-primary">Save Duration (Hours)</button>
+             <div class="modal-body-scrollable">
+                <p>Configure default hold duration and manage custom pallet fields.</p>
+                <fieldset>
+                    <legend>Default Hold Duration</legend>
+                    <div class="input-group">
+                        <input type="number" id="duration-input" placeholder="e.g., 36">
+                        <button id="save-duration-btn" class="btn btn-primary">Save Duration (Hours)</button>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>Custom Fields</legend>
+                    <div class="input-group">
+                        <input type="text" id="field-name-input" placeholder="e.g., Inspector Name">
+                        <button id="add-field-btn" class="btn btn-success">Add Field</button>
+                    </div>
+                    <div id="fields-list"></div>
+                </fieldset>
             </div>
-             <div class="input-group">
-                <input type="text" id="field-name-input" placeholder="e.g., Inspector Name">
-                <button id="add-field-btn" class="btn btn-success">Add Field</button>
-            </div>
-            <div id="fields-list"></div>
             <div class="modal-actions">
                 <button id="settings-modal-close-btn" class="btn">Close</button>
             </div>
@@ -844,6 +911,7 @@
     let isMultiSelectMode = false;
     let selectedPallets = [];
     let lastLifecycleSearchResults = [];
+    const COOKING_FIELDS = ["Cooking Date", "Total Cooking Weight", "Recipe", "Jelatine Batch", "Starch Batch", "Glucose Batch", "Suger Batch", "Flavours Batch", "Colors Batch"];
 
     // --- REAL DATA FOR ITEM WEIGHTS ---
     const PALLET_ITEMS = [
@@ -933,6 +1001,11 @@
     const modalUpdateBtn = getEl('modal-update-btn');
     const modalActionBtn = getEl('modal-action-btn');
     const modalCloseBtn = getEl('modal-close-btn');
+    const cookingModal = getEl('cooking-modal');
+    const cookingModalTitle = getEl('cooking-modal-title');
+    const cookingModalBody = getEl('cooking-modal-body');
+    const cookingModalCloseBtn = getEl('cooking-modal-close-btn');
+    const cookingModalConfirmBtn = getEl('cooking-modal-confirm-btn');
     const dischargeModal = getEl('discharge-modal');
     const dischargeModalTitle = getEl('discharge-modal-title');
     const dischargeCartonsInput = getEl('discharge-cartons');
@@ -1244,9 +1317,14 @@
 
 
     // --- UI & FORM BUILDING ---
-    const buildOccupyForm = (container, palletData = {}) => {
+    const buildForm = (container, palletData = {}, fields) => {
         container.innerHTML = '';
-        getFields().forEach(field => {
+        const formGrid = document.createElement('div');
+
+        const mainDetails = document.createElement('div');
+        const standardFields = fields.filter(f => !COOKING_FIELDS.includes(f));
+        
+        standardFields.forEach(field => {
             const fieldDiv = document.createElement('div');
             fieldDiv.className = 'form-field';
             const label = document.createElement('label');
@@ -1289,8 +1367,50 @@
             inputElement.dataset.field = field;
             fieldDiv.appendChild(label);
             fieldDiv.appendChild(inputElement);
-            container.appendChild(fieldDiv);
+            mainDetails.appendChild(fieldDiv);
         });
+        
+        container.appendChild(mainDetails);
+
+        const cookingFields = fields.filter(f => COOKING_FIELDS.includes(f));
+        if (cookingFields.length > 0) {
+            const fieldset = document.createElement('fieldset');
+            const legend = document.createElement('legend');
+            legend.textContent = 'Cooking & Batch Details';
+            fieldset.appendChild(legend);
+            formGrid.className = 'cooking-form-grid';
+            
+            cookingFields.forEach(field => {
+                 const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'form-field';
+                const label = document.createElement('label');
+                label.textContent = field;
+                let inputElement = document.createElement('input');
+                 const value = palletData[field] || '';
+
+                if(field === 'Cooking Date') {
+                    inputElement.type = 'date';
+                    inputElement.value = value || new Date().toISOString().split('T')[0];
+                } else if (field === 'Total Cooking Weight') {
+                    inputElement.type = 'number';
+                    inputElement.step = '0.1';
+                    inputElement.placeholder = 'e.g., 1500.5';
+                    inputElement.value = value;
+                } else {
+                    inputElement.type = 'text';
+                    inputElement.value = value;
+                }
+
+                inputElement.dataset.field = field;
+                fieldDiv.appendChild(label);
+                fieldDiv.appendChild(inputElement);
+                formGrid.appendChild(fieldDiv)
+            });
+            fieldset.appendChild(formGrid);
+            container.appendChild(fieldset);
+        }
+
+
         const nameSelect = container.querySelector('[data-field="Name"]');
         if (nameSelect) nameSelect.dispatchEvent(new Event('change'));
     };
@@ -1559,9 +1679,14 @@
     };
 
     // --- PALLET ACTIONS & MULTI-SELECT ---
-    const occupyPallet = (palletId) => {
-        const { details, allFieldsValid } = getFormData(modalBody);
-        if (!allFieldsValid) return showCustomAlert('Error', 'Please fill in all required details, including selecting an item name.');
+    const occupyPallet = (palletId, detailsOverride = null) => {
+        const { details, allFieldsValid } = detailsOverride ? { details: detailsOverride, allFieldsValid: true } : getFormData(palletModal.querySelector('.modal-body-scrollable'));
+
+        if (!allFieldsValid) {
+             showCustomAlert('Error', 'Please fill in all required standard details, including selecting an item name.');
+             return;
+        }
+
         const multiRoomState = getMultiRoomState();
         multiRoomState[currentRoom][palletId] = { 
             occupied: true, 
@@ -1645,7 +1770,7 @@
     };
 
     const savePalletChanges = (palletId) => {
-        const { details, allFieldsValid } = getFormData(modalBody);
+        const { details, allFieldsValid } = getFormData(palletModal.querySelector('.modal-body-scrollable'));
         if (!allFieldsValid) return showCustomAlert('Error', 'Please fill in all required details.');
         const durationInput = document.getElementById('modal-duration-input');
         const newDurationHours = parseFloat(durationInput.value);
@@ -1691,29 +1816,43 @@
         );
     };
 
-    const occupyMultiplePallets = () => {
-        const { details, allFieldsValid } = getFormData(modalBody);
+    const occupyMultiplePallets = (isCookingBatch = false) => {
+        const modalToUse = isCookingBatch ? cookingModal : palletModal;
+        const { details, allFieldsValid } = getFormData(modalToUse.querySelector('.modal-body-scrollable'));
         if (!allFieldsValid) {
-            showCustomAlert('Error', 'Please fill in all required details, including selecting an item name.');
+            showCustomAlert('Error', 'Please fill in all required fields, including selecting an item name.');
             return;
         }
+
         const multiRoomState = getMultiRoomState();
         const startTime = new Date().toISOString();
         const occupiedIds = [];
+        
         selectedPallets.forEach(palletId => {
             if (!multiRoomState[currentRoom][palletId].occupied) {
-                multiRoomState[currentRoom][palletId] = { occupied: true, details, startTime, notificationSent: false, durationMs: DURATION_MS, lastDischargeEvent: null };
+                multiRoomState[currentRoom][palletId] = { 
+                    occupied: true, 
+                    details, 
+                    startTime, 
+                    notificationSent: false, 
+                    durationMs: DURATION_MS, 
+                    lastDischargeEvent: null 
+                };
                 occupiedIds.push(palletId);
             }
         });
-        saveMultiRoomState(multiRoomState);
-        logHistory('OCCUPY', `Occupied ${occupiedIds.length} pallets: ${occupiedIds.join(', ')}`, currentRoom, occupiedIds, details);
+
+        if (occupiedIds.length > 0) {
+            saveMultiRoomState(multiRoomState);
+            logHistory('OCCUPY', `Occupied ${occupiedIds.length} pallets: ${occupiedIds.join(', ')} from cooking batch.`, currentRoom, occupiedIds, details);
+        }
+        
         exitMultiSelectMode();
-        closeModal(palletModal);
+        closeModal(modalToUse);
     };
 
     const updateMultiplePallets = () => {
-        const { details, allFieldsValid } = getFormData(modalBody);
+        const { details, allFieldsValid } = getFormData(palletModal.querySelector('.modal-body-scrollable'));
         if (!allFieldsValid) {
             showCustomAlert('Error', 'Please fill in all fields to update.');
             return;
@@ -1752,18 +1891,18 @@
     // --- FIELD MANAGEMENT ---
     const renderFieldList = () => {
         fieldsList.innerHTML = '';
-        getFields().forEach(field => {
-            const isDefault = DEFAULT_FIELDS.map(f => f.toLowerCase()).includes(field.toLowerCase());
+        const allFields = [...DEFAULT_FIELDS, ...COOKING_FIELDS, ...getFields().filter(f => !DEFAULT_FIELDS.includes(f) && !COOKING_FIELDS.includes(f))];
+        const customFields = getFields().filter(f => !DEFAULT_FIELDS.includes(f) && !COOKING_FIELDS.includes(f));
+        
+        customFields.forEach(field => {
             const fieldTag = document.createElement('div');
             fieldTag.className = 'field-tag';
             fieldTag.textContent = field;
-            if (!isDefault) {
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'remove-field-btn';
-                removeBtn.dataset.field = field;
-                removeBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
-                fieldTag.appendChild(removeBtn);
-            }
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-field-btn';
+            removeBtn.dataset.field = field;
+            removeBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
+            fieldTag.appendChild(removeBtn);
             fieldsList.appendChild(fieldTag);
         });
     };
@@ -1823,7 +1962,8 @@
         multiActionSelect.innerHTML = '<option value="">Select Action...</option>';
 
         if (emptyCount > 0 && occupiedCount === 0) {
-            multiActionSelect.innerHTML += '<option value="occupy">Occupy Selected</option>';
+            multiActionSelect.innerHTML += '<option value="occupy">Occupy (Simple)</option>';
+            multiActionSelect.innerHTML += '<option value="assign_cooking">Assign from Cooking</option>';
         }
         if (occupiedCount > 0 && emptyCount === 0) {
             multiActionSelect.innerHTML += '<option value="update">Update Details & Duration</option>';
@@ -1840,14 +1980,17 @@
     const getFormData = (container) => {
         const details = {};
         let allFieldsValid = true;
-        getFields().forEach(field => {
+        const allFields = [...DEFAULT_FIELDS, ...COOKING_FIELDS, ...getFields().filter(f => !DEFAULT_FIELDS.includes(f) && !COOKING_FIELDS.includes(f))];
+        
+        allFields.forEach(field => {
             const input = container.querySelector(`[data-field="${field}"]`);
-            if (!input) return;
-            const value = input.value.trim();
-            if ((!value || value === "Select an Item") && !['description'].includes(field.toLowerCase())) {
-                allFieldsValid = false;
+            if (input) {
+                const value = input.value.trim();
+                 if ((!value || value === "Select an Item") && !['description'].includes(field.toLowerCase()) && !field.toLowerCase().includes('batch')) {
+                    allFieldsValid = false;
+                }
+                details[field] = value;
             }
-            details[field] = value;
         });
         return { details, allFieldsValid };
     };
@@ -1869,7 +2012,7 @@
 
     const showOccupyForm = (palletId) => {
         modalTitle.textContent = `Occupy Pallet ${palletId} (${currentRoom})`;
-        buildOccupyForm(modalBody);
+        buildForm(modalBody, {}, getFields());
         modalActionBtn.className = 'btn btn-success';
         modalActionBtn.textContent = 'Occupy Pallet';
         modalActionBtn.onclick = () => occupyPallet(palletId);
@@ -1931,7 +2074,7 @@
 
     const showEditPalletView = (palletId, palletData) => {
         modalTitle.textContent = `Edit Pallet ${palletId} (${currentRoom})`;
-        buildOccupyForm(modalBody, palletData.details);
+        buildForm(modalBody, palletData.details, [...getFields(), ...COOKING_FIELDS]);
         const currentDurationHours = (palletData.durationMs || DURATION_MS) / 3600000;
         const durationField = `
             <div class="form-field">
@@ -1978,18 +2121,23 @@
              const action = multiActionSelect.value;
              switch(action) {
                  case 'occupy':
-                     modalTitle.textContent = `Occupy ${selectedPallets.length} Selected Pallets`;
-                     buildOccupyForm(modalBody);
+                     modalTitle.textContent = `Occupy ${selectedPallets.length} Selected Pallets (Simple)`;
+                     buildForm(modalBody, {}, getFields());
                      modalActionBtn.textContent = 'Confirm for All';
                      modalActionBtn.className = 'btn btn-success';
                      modalActionBtn.style.display = 'inline-block';
                      modalUpdateBtn.style.display = 'none';
-                     modalActionBtn.onclick = occupyMultiplePallets;
+                     modalActionBtn.onclick = () => occupyMultiplePallets(false);
                      openModal(palletModal);
                      break;
+                 case 'assign_cooking':
+                    cookingModalTitle.textContent = `Assign Cooking Batch to ${selectedPallets.length} Pallets`;
+                    buildForm(cookingModalBody, {}, [...DEFAULT_FIELDS, ...COOKING_FIELDS]);
+                    openModal(cookingModal);
+                    break;
                  case 'update':
                       modalTitle.textContent = `Update Details for ${selectedPallets.length} Pallets`;
-                     buildOccupyForm(modalBody, getMultiRoomState()[currentRoom][selectedPallets[0]].details);
+                     buildForm(modalBody, getMultiRoomState()[currentRoom][selectedPallets[0]].details, [...getFields(), ...COOKING_FIELDS]);
                      const firstPalletData = getMultiRoomState()[currentRoom][selectedPallets[0]];
                      const currentDurationHours = (firstPalletData.durationMs || DURATION_MS) / 3600000;
                      const durationField = `
@@ -2013,21 +2161,13 @@
 
         clearRoomBtn.addEventListener('click', clearCurrentRoom);
         clearHistoryBtn.addEventListener('click', clearHistory);
-        toggleHistoryBtn.addEventListener('click', () => {
-            openModal(historyModal);
-        });
-        toggleReportBtn.addEventListener('click', () => {
-            openModal(reportModal);
-        });
-        toggleSettingsBtn.addEventListener('click', () => {
-            openModal(settingsModal);
-        });
-        toggleSearchBtn.addEventListener('click', () => {
-            openModal(searchModal);
-        });
+        toggleHistoryBtn.addEventListener('click', () => openModal(historyModal));
+        toggleReportBtn.addEventListener('click', () => openModal(reportModal));
+        toggleSettingsBtn.addEventListener('click', () => openModal(settingsModal));
+        toggleSearchBtn.addEventListener('click', () => openModal(searchModal));
         performSearchBtn.addEventListener('click', performLifecycleSearch);
         exportSearchCsvBtn.addEventListener('click', exportLifecycleResultsToCSV);
-
+        cookingModalConfirmBtn.addEventListener('click', () => occupyMultiplePallets(true));
 
         generateReportBtn.addEventListener('click', renderReport);
         exportCsvBtn.addEventListener('click', () => {
@@ -2090,7 +2230,7 @@
             if (palletDiv) handlePalletClick(palletDiv.id);
         });
 
-        [modalCloseBtn, detailsAlertCloseBtn, dischargeModalCloseBtn, confirmModalCancelBtn, reportModalCloseBtn, historyModalCloseBtn, snapshotModalCloseBtn, settingsModalCloseBtn, searchModalCloseBtn].forEach(btn => {
+        [modalCloseBtn, detailsAlertCloseBtn, dischargeModalCloseBtn, confirmModalCancelBtn, reportModalCloseBtn, historyModalCloseBtn, snapshotModalCloseBtn, settingsModalCloseBtn, searchModalCloseBtn, cookingModalCloseBtn].forEach(btn => {
             btn.addEventListener('click', () => closeModal(btn.closest('.modal-backdrop')));
         });
         dischargeModalConfirmBtn.addEventListener('click', confirmDischarge);
