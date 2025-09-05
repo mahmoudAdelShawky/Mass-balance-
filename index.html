@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pallet Room Manager Pro</title>
+    <style>
+        /* --- Professional Theming & Layout --- */
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --dark-text: #212529;
+            --light-text: #ffffff;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #e9ecef;
+            color: var(--dark-text);
+            margin: 0;
+            padding: 15px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        h1, h2, h3 {
+            color: #1a253c;
+            margin-top: 0;
+        }
+        h1 { font-size: 1.8rem; }
+        h2 { font-size: 1.4rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;}
+
+        .card {
+            background: var(--light-text);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+        }
+        
+        /* --- Icons --- */
+        .icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            stroke-width: 0;
+            stroke: currentColor;
+            fill: currentColor;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        /* --- Dashboard --- */
+        #dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .stat-card {
+            background-color: var(--light-bg);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .stat-card .stat-label {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            margin-top: 5px;
+        }
+        .stat-card.expired .stat-value { color: var(--danger-color); }
+
+
+        /* --- Room & Pallet Styles --- */
+        #room-layout {
+            display: flex;
+            justify-content: space-between;
+            background: #495057;
+            padding: 15px;
+            border-radius: var(--border-radius);
+        }
+
+        .pallet-aisle {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 47%;
+        }
+
+        #center-aisle {
+            width: 6%;
+        }
+
+        .pallet {
+            height: 60px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 13px;
+            color: var(--light-text);
+            font-weight: 600;
+            border: 2px solid transparent;
+            text-align: center;
+            overflow: hidden;
+            padding: 4px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        .pallet:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .pallet span {
+            display: block;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
+        .pallet .pallet-label { font-size: 0.9em; }
+        .pallet .pallet-timer { font-size: 1.1em; letter-spacing: 0.5px; }
+
+
+        .pallet.empty {
+            background-color: var(--secondary-color);
+            border-color: #8d99ae;
+        }
+        .pallet.recently-discharged {
+            background-color: var(--info-color);
+            border-color: #117a8b;
+        }
+
+        .pallet.occupied {
+            background-color: var(--primary-color);
+            border-color: var(--primary-hover);
+        }
+
+        .pallet.expired {
+            background-color: var(--danger-color);
+            border-color: #a71d2a;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .pallet.snapshot-discharged {
+            background-color: var(--info-color);
+            border-color: #117a8b;
+        }
+        .pallet.snapshot-discharged::after {
+            content: 'D';
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            line-height: 14px;
+        }
+
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        /* --- Controls & Navigation --- */
+        .desktop-only { display: flex; }
+        .mobile-only { display: none; }
+
+        #room-tabs {
+            flex-wrap: wrap;
+            gap: 5px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .room-tab {
+            padding: 10px 15px;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .room-tab:hover { background-color: #e2e6ea; }
+        .room-tab.active {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border-color: var(--primary-color);
+        }
+
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        /* --- Menu Dropdown --- */
+        .menu-container {
+            position: relative;
+            margin-left: auto; /* Pushes menu to the right */
+        }
+        #storage-room-view.multi-select-active .menu-container {
+            display: none;
+        }
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: var(--light-text);
+            min-width: 220px;
+            box-shadow: var(--shadow);
+            border-radius: var(--border-radius);
+            z-index: 10;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            padding: 5px 0;
+        }
+        .menu-dropdown.show {
+            display: block;
+        }
+        .menu-item {
+            display: flex;
+            width: 100%;
+            padding: 12px 18px;
+            border: none;
+            background: none;
+            text-align: left;
+            font-weight: 500;
+            border-radius: 0;
+        }
+        .menu-item:hover {
+            background-color: var(--light-bg);
+        }
+         .menu-item .icon {
+            color: var(--secondary-color);
+        }
+
+
+        button, .btn {
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--secondary-color);
+            background-color: var(--light-text);
+            color: var(--dark-text);
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        button:hover, .btn:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary { background-color: var(--primary-color); color: var(--light-text); border-color: var(--primary-color); }
+        .btn-danger { background-color: var(--danger-color); color: var(--light-text); border-color: var(--danger-color); }
+        .btn-success { background-color: var(--success-color); color: var(--light-text); border-color: var(--success-color); }
+        
+        #multi-action-container { display: flex; gap: 10px; margin-left: auto; }
+        select {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--light-text);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .pallet.selected {
+            box-shadow: 0 0 0 3px var(--success-color), inset 0 0 0 30px rgba(40, 167, 69, 0.3);
+            transform: scale(1.05);
+        }
+        #storage-room-view.multi-select-active .pallet { cursor: copy; }
+
+        /* --- Field & Settings --- */
+        .input-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px 0 0 6px;
+            font-size: 1rem;
+        }
+        .input-group button { border-radius: 0 6px 6px 0; }
+
+        #fields-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .field-tag {
+            background-color: var(--light-bg);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+        }
+        .field-tag .remove-field-btn {
+            background: var(--secondary-color);
+            color: var(--light-text);
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            line-height: 20px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .field-tag .remove-field-btn .icon { margin: 0; }
+
+
+        /* --- Modals --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none; /* Changed from flex */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.visible {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-backdrop.visible .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-content.large { max-width: 850px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { margin: 0; }
+
+        .modal-actions {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        #snapshot-modal { z-index: 1001; }
+        #details-alert-modal { z-index: 1002; }
+        #confirm-modal { z-index: 1010; }
+
+        .form-field { margin-bottom: 15px; }
+        .form-field label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+        }
+        
+        .details-section {
+            border-top: 1px dashed var(--border-color);
+            margin-top: 15px;
+            padding-top: 15px;
+        }
+        #details-alert-body {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+        #details-alert-body strong {
+            display: inline-block;
+            min-width: 110px;
+            color: var(--dark-text);
+        }
+        #details-alert-body .discharged-title {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        /* --- History & Snapshot --- */
+        .history-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .history-controls select,
+        .history-controls input[type="datetime-local"],
+        #search-date-input {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--light-bg);
+            font-size: 0.95rem;
+            font-weight: 500;
+            font-family: inherit;
+            flex-grow: 1;
+        }
+
+        .history-controls .btn {
+            flex-shrink: 0;
+        }
+
+        #history-search {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        #history-container, #search-results-container {
+            max-height: 50vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .history-entry {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+        .history-entry:last-child { border-bottom: none; }
+        .history-entry:hover { background-color: var(--light-bg); }
+
+        .history-icon { font-size: 20px; margin-right: 15px; margin-top: 5px; color: var(--secondary-color); }
+        .history-icon.occupy { color: var(--success-color); }
+        .history-icon.clear, .history-icon.discharge { color: var(--danger-color); }
+        .history-icon.update, .history-icon.reset { color: var(--primary-color); }
+        .history-icon.expired { color: var(--warning-color); }
+        
+        .history-details p { margin: 0; }
+        .history-details .message { font-weight: 500; margin-bottom: 4px; }
+        .history-details .message span { font-weight: normal; color: #555; font-size: 0.9em; }
+        .history-details .timestamp { font-size: 0.8em; color: #777; }
+        
+        #snapshot-grid {
+            display: flex;
+            justify-content: space-between;
+            background: #777;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #snapshot-grid .pallet { cursor: help; }
+
+        /* --- Report & Search Styles --- */
+        #report-container table, #search-results-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #report-container th, #report-container td, #search-results-container th, #search-results-container td {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        #report-container th, #search-results-container th {
+            background-color: var(--light-bg);
+            font-weight: 600;
+        }
+        #report-container tbody tr:nth-child(even), #search-results-container tbody tr:nth-child(even) {
+            background-color: #fcfcfd;
+        }
+
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .app-container { padding: 0; }
+            .card { padding: 15px; border-radius: 0; box-shadow: none; border-left: none; border-right: none;}
+            
+            .desktop-only { display: none; }
+            .mobile-only { display: block; }
+            
+            .controls-container { flex-direction: column; align-items: stretch; }
+            .menu-container { margin-left: 0; }
+
+            #room-select {
+                width: 100%;
+                padding: 12px;
+                font-size: 1.1rem;
+                font-weight: bold;
+                margin-bottom: 15px;
+            }
+            
+            #room-layout { flex-direction: column; padding: 10px; }
+            .pallet-aisle { width: 100%; grid-template-columns: repeat(3, 1fr); }
+            #center-aisle { display: none; }
+            .pallet { height: 65px; font-size: 14px; }
+            .input-group { flex-direction: column; }
+            .input-group input { margin-bottom: 5px; border-radius: 6px; }
+            .input-group button { border-radius: 6px; }
+            .modal-content { width: 95%; padding: 20px; }
+
+            #aisle-filter {
+                display: flex;
+                width: 100%;
+                margin-bottom: 15px;
+                border-radius: 6px;
+                overflow: hidden;
+                border: 1px solid var(--primary-color);
+            }
+            #aisle-filter button {
+                flex-grow: 1;
+                padding: 12px;
+                border: none;
+                background-color: var(--light-text);
+                color: var(--primary-color);
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                border-left: 1px solid var(--primary-color);
+            }
+            #aisle-filter button:first-child { border-left: none; }
+            #aisle-filter button.active { background-color: var(--primary-color); color: var(--light-text); }
+
+            #room-layout.filter-left #right-pallets,
+            #room-layout.filter-right #left-pallets { display: none; }
+            #room-layout.filter-left #left-pallets,
+            #room-layout.filter-right #right-pallets { width: 100%; }
+        }
+    </style>
+</head>
+<body dir="ltr">
+
+    <!-- Main Application Container -->
+    <div class="app-container">
+        <h1>Pallet Room Manager Pro</h1>
+        
+        <!-- Section 0: Dashboard -->
+        <div id="dashboard" class="card">
+            <div class="stat-card">
+                <div id="stat-occupied" class="stat-value">0</div>
+                <div class="stat-label">Occupied Pallets</div>
+            </div>
+            <div class="stat-card">
+                <div id="stat-empty" class="stat-value">0</div>
+                <div class="stat-label">Empty Pallets</div>
+            </div>
+            <div class="stat-card expired">
+                <div id="stat-expired" class="stat-value">0</div>
+                <div class="stat-label">Expired Pallets</div>
+            </div>
+        </div>
+
+        <!-- Section 1: Visual Storage Room -->
+        <div id="storage-room-view" class="card">
+            
+            <div id="room-tabs" class="desktop-only"></div>
+            <select id="room-select" class="mobile-only"></select>
+
+            <div id="aisle-filter" class="mobile-only">
+                <button data-aisle="all" class="active">All</button>
+                <button data-aisle="left">Left</button>
+                <button data-aisle="right">Right</button>
+            </div>
+
+            <div class="controls-container">
+                 <div id="multi-action-container" style="display: none;">
+                    <select id="multi-action-select">
+                        <option value="">Select Action...</option>
+                    </select>
+                    <button id="multi-action-go" class="btn btn-primary">Go</button>
+                </div>
+                <button id="cancel-multi-select-btn" class="btn btn-danger" style="display: none;">
+                     <svg class="icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+                    Cancel Selection
+                </button>
+
+                <div class="menu-container">
+                    <button id="menu-toggle-btn" class="btn">
+                         Actions
+                         <svg class="icon" style="margin-right:0; margin-left: 8px;" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"></path></svg>
+                    </button>
+                    <div id="controls-menu" class="menu-dropdown">
+                        <button id="multi-select-toggle" class="menu-item">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M16.293 3.293a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L18.586 9H3a1 1 0 0 1 0-2h15.586l-2.293-2.293a1 1 0 0 1 0-1.414zM7.707 10.293a1 1 0 0 1 0 1.414L5.414 14H21a1 1 0 0 1 0 2H5.414l2.293 2.293a1 1 0 0 1-1.414 1.414l-4-4a1 1 0 0 1 0-1.414l4-4a1 1 0 0 1 1.414 0z"/></svg>
+                            Select Multiple
+                        </button>
+                         <button id="toggle-report-btn" class="menu-item">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M8 10H5V7h3v3zm5 0h-3V7h3v3zm5 0h-3V7h3v3zM8 15h-3v-3h3v3zm5 0h-3v-3h3v3zm5 0h-3v-3h3v3zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>
+                            Summary Report
+                        </button>
+                        <button id="toggle-history-btn" class="menu-item">
+                             <svg class="icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8z"/><path d="M12 6a1 1 0 0 0-1 1v5a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L12 11.586V7a1 1 0 0 0-1-1z"/></svg>
+                            History Log
+                        </button>
+                        <button id="toggle-search-btn" class="menu-item">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                            Lifecycle Search
+                        </button>
+                         <button id="toggle-settings-btn" class="menu-item">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                            Settings
+                        </button>
+                        <button id="clear-room-btn" class="menu-item">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
+                            Clear Room
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <h2 id="room-title">Storage Room</h2>
+            <div id="room-layout">
+                <div id="left-pallets" class="pallet-aisle"></div>
+                <div id="center-aisle"></div>
+                <div id="right-pallets" class="pallet-aisle"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Modals -->
+    <div id="pallet-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                 <h3 id="modal-title">Pallet Details</h3>
+            </div>
+            <div id="modal-body"></div>
+            <div class="modal-actions">
+                <button id="modal-close-btn" class="btn">Close</button>
+                <button id="modal-update-btn" class="btn btn-primary" style="display: none;"></button>
+                <button id="modal-action-btn" class="btn" style="display:none;"></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="discharge-modal" class="modal-backdrop">
+        <div class="modal-content">
+             <h3 id="discharge-modal-title">Discharge Pallet</h3>
+            <div class="form-field">
+                <label for="discharge-cartons">Number of Cartons Packed</label>
+                <input type="number" id="discharge-cartons" placeholder="e.g., 50">
+            </div>
+             <div class="form-field">
+                <label for="discharge-unit">Unit</label>
+                <input type="text" id="discharge-unit" placeholder="e.g., PCS">
+            </div>
+            <div class="form-field">
+                <label for="discharge-scrap">Scrap (kg)</label>
+                <input type="number" step="0.1" id="discharge-scrap" placeholder="e.g., 2.5">
+            </div>
+            <div class="modal-actions">
+                <button id="discharge-modal-close-btn" class="btn">Cancel</button>
+                <button id="discharge-modal-confirm-btn" class="btn btn-success">Confirm Discharge</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="details-alert-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 id="details-alert-title">Details</h3>
+            <div id="details-alert-body"></div>
+            <div class="modal-actions">
+                <button id="details-alert-close-btn" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirm-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 id="confirm-modal-title">Are you sure?</h3>
+            <p id="confirm-modal-body"></p>
+            <div class="modal-actions">
+                <button id="confirm-modal-cancel-btn" class="btn">Cancel</button>
+                <button id="confirm-modal-confirm-btn" class="btn btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="report-modal" class="modal-backdrop">
+        <div class="modal-content large">
+            <h3>Summary Report</h3>
+            <p>An aggregate summary of all currently occupied pallets.</p>
+            <div class="history-controls">
+                 <select id="report-room-select"></select>
+                 <button id="generate-report-btn" class="btn btn-primary">Generate Report</button>
+                 <button id="export-csv-btn" class="btn btn-success" style="display: none;">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+                    Export to CSV
+                </button>
+            </div>
+            <div id="report-container"></div>
+            <div class="modal-actions">
+                <button id="report-modal-close-btn" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="history-modal" class="modal-backdrop">
+        <div class="modal-content large">
+            <h3>History Log</h3>
+            <p>View all events or select a point in time to see a snapshot of a room.</p>
+             <div class="history-controls">
+                 <select id="history-room-select"></select>
+                 <input type="datetime-local" id="history-datetime-input">
+                 <button id="view-history-state-btn" class="btn">View State</button>
+                 <button id="clear-history-btn" class="btn btn-danger">Clear All History</button>
+            </div>
+            <input type="text" id="history-search" placeholder="Search history (e.g., L1, Cola, discharge)...">
+            <div id="history-container"><p>No history yet.</p></div>
+            <div class="modal-actions">
+                <button id="history-modal-close-btn" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="snapshot-modal" class="modal-backdrop">
+        <div class="modal-content large">
+            <h3 id="snapshot-modal-title">Room Snapshot</h3>
+            <div id="snapshot-grid"></div>
+            <div class="modal-actions">
+                <button id="snapshot-modal-close-btn" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-backdrop">
+        <div class="modal-content large">
+            <h2>Settings & Fields</h2>
+            <p>Configure default hold duration and manage custom pallet fields.</p>
+            <div class="input-group">
+                <input type="number" id="duration-input" placeholder="e.g., 36">
+                <button id="save-duration-btn" class="btn btn-primary">Save Duration (Hours)</button>
+            </div>
+             <div class="input-group">
+                <input type="text" id="field-name-input" placeholder="e.g., Inspector Name">
+                <button id="add-field-btn" class="btn btn-success">Add Field</button>
+            </div>
+            <div id="fields-list"></div>
+            <div class="modal-actions">
+                <button id="settings-modal-close-btn" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="search-modal" class="modal-backdrop">
+        <div class="modal-content large">
+            <h3>Pallet Lifecycle Search</h3>
+            <p>Find all pallets that started on a specific date and track their full lifecycle.</p>
+            <div class="history-controls">
+                <input type="date" id="search-date-input">
+                <button id="perform-search-btn" class="btn btn-primary">Search</button>
+                 <button id="export-search-csv-btn" class="btn btn-success" style="display: none;">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+                    Export Results
+                </button>
+            </div>
+            <div id="search-results-container"></div>
+             <div class="modal-actions">
+                <button id="search-modal-close-btn" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+    // --- CONFIGURATION & GLOBAL STATE ---
+    const ROOM_NAMES = ["Room 1", "Room 2", "Room 3", "Room 4", "Room 5", "Room 6", "Room 7"];
+    let currentRoom = ROOM_NAMES[0];
+    let DURATION_MS;
+    let isMultiSelectMode = false;
+    let selectedPallets = [];
+    let lastLifecycleSearchResults = [];
+
+    // --- REAL DATA FOR ITEM WEIGHTS ---
+    const PALLET_ITEMS = [
+        { name: "Select an Item", weight: 0 }, { name: "Cola", weight: 211.1 }, 
+        { name: "Bears", weight: 205.5 }, { name: "Numbers", weight: 195.0 }, 
+        { name: "Heart", weight: 195.0 }, { name: "Star", weight: 190.2 }, 
+        { name: "Letters", weight: 195.0 }, { name: "Worm", weight: 204.1 }, 
+        { name: "Dinosaur", weight: 168.5 }, { name: "Big Worm", weight: 209.3 }, 
+        { name: "Big Cola", weight: 196.3 }, { name: "Benz", weight: 140.4 }, 
+        { name: "Cherry", weight: 154.7 }, { name: "Crocodile", weight: 163.7 }, 
+        { name: "Camel", weight: 165.2 }, { name: "Ring", weight: 189.3 }, 
+        { name: "Doly", weight: 175.0 }, { name: "Bone", weight: 174.2 }, 
+        { name: "Butterfly", weight: 171.1 }, { name: "Strawberry", weight: 187.0 }, 
+        { name: "Rabbit", weight: 128.3 }, { name: "Qas", weight: 188.1 }, 
+        { name: "Brushes", weight: 180.8 }, { name: "Boot", weight: 217.0 }, 
+        { name: "Teeth", weight: 180.1 }, { name: "Sticker", weight: 194.4 }, 
+        { name: "Vehicles", weight: 178.8 }, { name: "Hot", weight: 194.4 }, 
+        { name: "Big Sticker", weight: 194.4 }, { name: "Duck", weight: 279.9 }
+    ];
+
+    // --- ELEMENT REFERENCES ---
+    const getEl = (id) => document.getElementById(id);
+    const storageRoomView = getEl('storage-room-view');
+    const roomTabsContainer = getEl('room-tabs');
+    const roomSelect = getEl('room-select');
+    const roomTitle = getEl('room-title');
+    const roomLayout = getEl('room-layout');
+    const leftPalletsContainer = getEl('left-pallets');
+    const rightPalletsContainer = getEl('right-pallets');
+    const aisleFilterContainer = getEl('aisle-filter');
+    const multiSelectToggleBtn = getEl('multi-select-toggle');
+    const multiActionContainer = getEl('multi-action-container');
+    const multiActionSelect = getEl('multi-action-select');
+    const multiActionGoBtn = getEl('multi-action-go');
+    const toggleHistoryBtn = getEl('toggle-history-btn');
+    const toggleReportBtn = getEl('toggle-report-btn');
+    const toggleSettingsBtn = getEl('toggle-settings-btn');
+    const toggleSearchBtn = getEl('toggle-search-btn');
+    const clearRoomBtn = getEl('clear-room-btn');
+    const durationInput = getEl('duration-input');
+    const saveDurationBtn = getEl('save-duration-btn');
+    
+    // History Modal Elements
+    const historyContainer = getEl('history-container');
+    const historyRoomSelect = getEl('history-room-select');
+    const historyDatetimeInput = getEl('history-datetime-input');
+    const viewHistoryStateBtn = getEl('view-history-state-btn');
+    const clearHistoryBtn = getEl('clear-history-btn');
+    const historySearchInput = getEl('history-search');
+    
+    const fieldNameInput = getEl('field-name-input');
+    const addFieldBtn = getEl('add-field-btn');
+    const fieldsList = getEl('fields-list');
+    
+    // Report Elements
+    const reportModal = getEl('report-modal');
+    const reportRoomSelect = getEl('report-room-select');
+    const reportModalCloseBtn = getEl('report-modal-close-btn');
+    const generateReportBtn = getEl('generate-report-btn');
+    const exportCsvBtn = getEl('export-csv-btn');
+    const reportContainer = getEl('report-container');
+
+    // Search Elements
+    const searchModal = getEl('search-modal');
+    const searchDateInput = getEl('search-date-input');
+    const performSearchBtn = getEl('perform-search-btn');
+    const searchResultsContainer = getEl('search-results-container');
+    const searchModalCloseBtn = getEl('search-modal-close-btn');
+    const exportSearchCsvBtn = getEl('export-search-csv-btn');
+
+    // Menu Elements
+    const menuToggleBtn = getEl('menu-toggle-btn');
+    const controlsMenu = getEl('controls-menu');
+    const cancelMultiSelectBtn = getEl('cancel-multi-select-btn');
+    const menuContainer = getEl('menu-container');
+
+
+    // Dashboard Stats
+    const statOccupied = getEl('stat-occupied');
+    const statEmpty = getEl('stat-empty');
+    const statExpired = getEl('stat-expired');
+
+    // Modals
+    const palletModal = getEl('pallet-modal');
+    const modalTitle = getEl('modal-title');
+    const modalBody = getEl('modal-body');
+    const modalUpdateBtn = getEl('modal-update-btn');
+    const modalActionBtn = getEl('modal-action-btn');
+    const modalCloseBtn = getEl('modal-close-btn');
+    const dischargeModal = getEl('discharge-modal');
+    const dischargeModalTitle = getEl('discharge-modal-title');
+    const dischargeCartonsInput = getEl('discharge-cartons');
+    const dischargeUnitInput = getEl('discharge-unit');
+    const dischargeScrapInput = getEl('discharge-scrap');
+    const dischargeModalCloseBtn = getEl('discharge-modal-close-btn');
+    const dischargeModalConfirmBtn = getEl('discharge-modal-confirm-btn');
+    const snapshotModal = getEl('snapshot-modal');
+    const snapshotModalTitle = getEl('snapshot-modal-title');
+    const snapshotGrid = getEl('snapshot-grid');
+    const snapshotModalCloseBtn = getEl('snapshot-modal-close-btn');
+    const detailsAlertModal = getEl('details-alert-modal');
+    const detailsAlertTitle = getEl('details-alert-title');
+    const detailsAlertBody = getEl('details-alert-body');
+    const detailsAlertCloseBtn = getEl('details-alert-close-btn');
+    const confirmModal = getEl('confirm-modal');
+    const confirmModalTitle = getEl('confirm-modal-title');
+    const confirmModalBody = getEl('confirm-modal-body');
+    const confirmModalCancelBtn = getEl('confirm-modal-cancel-btn');
+    const confirmModalConfirmBtn = getEl('confirm-modal-confirm-btn');
+    const historyModal = getEl('history-modal');
+    const historyModalCloseBtn = getEl('history-modal-close-btn');
+    const settingsModal = getEl('settings-modal');
+    const settingsModalCloseBtn = getEl('settings-modal-close-btn');
+    
+    const DEFAULT_FIELDS = ["Product ID", "Name", "Description", "Weight"];
+
+    // --- DATA HANDLING ---
+    const getFields = () => JSON.parse(localStorage.getItem('noteFields') || JSON.stringify(DEFAULT_FIELDS));
+    const getHoldDurationHours = () => parseInt(localStorage.getItem('palletHoldDuration') || '36', 10);
+    const getHistory = () => JSON.parse(localStorage.getItem('palletHistory') || '[]');
+    const saveHistory = (history) => localStorage.setItem('palletHistory', JSON.stringify(history));
+
+    const getMultiRoomState = () => {
+        const state = JSON.parse(localStorage.getItem('multiRoomState'));
+        if (state) return state;
+        const initialState = {};
+        ROOM_NAMES.forEach(roomName => {
+            initialState[roomName] = {};
+            for (let i = 1; i <= 13; i++) {
+                initialState[roomName][`L${i}`] = { occupied: false, details: null, startTime: null, notificationSent: false, durationMs: null };
+                initialState[roomName][`R${i}`] = { occupied: false, details: null, startTime: null, notificationSent: false, durationMs: null };
+            }
+        });
+        return initialState;
+    };
+    const saveMultiRoomState = (state) => {
+        localStorage.setItem('multiRoomState', JSON.stringify(state));
+        updateDashboard();
+    };
+    
+    // --- UTILITY FUNCTIONS ---
+    const formatDateTime = (dateString) => {
+        if (!dateString) return 'N/A';
+        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
+        return new Date(dateString).toLocaleString('en-US', options);
+    };
+    
+    // --- MODAL & ALERT LOGIC ---
+    const openModal = (modalEl) => {
+        modalEl.classList.add('visible');
+    };
+    const closeModal = (modalEl) => {
+        modalEl.classList.remove('visible');
+    };
+    
+    const showCustomAlert = (title, message) => {
+        detailsAlertTitle.textContent = title;
+        detailsAlertBody.innerHTML = message;
+        openModal(detailsAlertModal);
+    };
+
+    const showCustomConfirm = (title, message, onConfirm) => {
+        confirmModalTitle.textContent = title;
+        confirmModalBody.textContent = message;
+
+        const newConfirmBtn = confirmModalConfirmBtn.cloneNode(true);
+        confirmModalConfirmBtn.parentNode.replaceChild(newConfirmBtn, confirmModalConfirmBtn);
+        
+        newConfirmBtn.addEventListener('click', () => {
+            onConfirm();
+            closeModal(confirmModal);
+        }, { once: true });
+
+        openModal(confirmModal);
+    };
+    
+    // --- DASHBOARD ---
+    const updateDashboard = () => {
+        const state = getMultiRoomState();
+        let occupied = 0, expired = 0, totalPallets = 0;
+
+        for (const roomName in state) {
+            for (const palletId in state[roomName]) {
+                totalPallets++;
+                const pallet = state[roomName][palletId];
+                if (pallet.occupied) {
+                    occupied++;
+                    const totalDuration = pallet.durationMs || DURATION_MS;
+                    const elapsedTime = new Date() - new Date(pallet.startTime);
+                    if (elapsedTime >= totalDuration) {
+                        expired++;
+                    }
+                }
+            }
+        }
+        statOccupied.textContent = occupied;
+        statEmpty.textContent = totalPallets - occupied;
+        statExpired.textContent = expired;
+    };
+
+
+    // --- HISTORY LOGIC ---
+    const logHistory = (type, message, room, palletIds, details = {}, extra = {}) => {
+        let history = getHistory();
+        const event = { type, message, room, palletIds: Array.isArray(palletIds) ? palletIds : [palletIds], details, timestamp: new Date().toISOString(), ...extra };
+        history.unshift(event);
+        if (history.length > 500) history.pop();
+        saveHistory(history);
+        renderHistory();
+    };
+
+    const renderHistory = () => {
+        const history = getHistory();
+        if (!history.length) {
+            historyContainer.innerHTML = '<p>No history yet.</p>';
+            return;
+        }
+
+        historyContainer.innerHTML = '';
+        const iconMap = {
+            OCCUPY: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-3v3h-2v-3H9v-2h3V8h2v3h3v2z"/></svg>', class: 'occupy' },
+            CLEAR: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>', class: 'clear' },
+            UPDATE: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>', class: 'update' },
+            RESET: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>', class: 'reset' },
+            EXPIRED: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>', class: 'expired' },
+            DISCHARGE: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 8h-3V4h-2v4H8V4H6v4H3v2l2 8v3h14v-3l2-8V8zM12 17.5l-4-4h2.5V11h3v2.5H16l-4 4z"/></svg>', class: 'discharge' },
+        };
+
+        history.forEach(event => {
+            const icon = iconMap[event.type] || { svg: 'ℹ️', class: '' };
+            const entry = document.createElement('div');
+            entry.className = 'history-entry';
+            const details = event.details || {}; // Defensive check
+            const prodId = details['Product ID'] || 'N/A';
+            const prodName = details['Name'] || '';
+            let extraDetails = '';
+            if (event.type === 'DISCHARGE') {
+                 extraDetails = `<span> | Cartons: ${event.cartons}, Unit: ${event.unit || 'N/A'}, Scrap: ${event.scrap} kg</span>`;
+            }
+            entry.innerHTML = `
+                <div class="history-icon ${icon.class}">${icon.svg}</div>
+                <div class="history-details">
+                    <p class="message">${event.message}<span> | ID: ${prodId} (${prodName})</span>${extraDetails}</p>
+                    <p class="timestamp">${formatDateTime(event.timestamp)}</p>
+                </div>
+            `;
+            entry.dataset.searchableContent = `${event.message} ${prodId} ${prodName}`.toLowerCase();
+            historyContainer.appendChild(entry);
+        });
+    };
+    
+    const clearHistory = () => {
+        showCustomConfirm('Clear All History', 'Are you sure you want to permanently delete all history? This action cannot be undone.', () => {
+            saveHistory([]);
+            renderHistory();
+        });
+    };
+
+    // --- POINT-IN-TIME HISTORY SNAPSHOT LOGIC ---
+    const generateRoomStateAtTime = (roomName, targetDate) => {
+        const targetTimestamp = new Date(targetDate).getTime();
+        const allHistory = getHistory(); // Get history in reverse chronological order
+
+        const roomStateSnapshot = {};
+        for (let i = 1; i <= 13; i++) {
+            const palletId = `L${i}`;
+            const palletIdR = `R${i}`;
+            roomStateSnapshot[palletId] = { occupied: false, details: null, lastEvent: null, startEvent: null };
+            roomStateSnapshot[palletIdR] = { occupied: false, details: null, lastEvent: null, startEvent: null };
+        }
+
+        // For each pallet, find its last state before or at the target timestamp
+        Object.keys(roomStateSnapshot).forEach(palletId => {
+            let lastStateFound = false;
+            let lastClearEvent = null;
+
+            for (const event of allHistory) {
+                if (new Date(event.timestamp).getTime() > targetTimestamp) continue;
+                if (!event.palletIds.includes(palletId) || event.room !== roomName) continue;
+
+                // Found the most recent event for this pallet within the timeframe
+                if (event.type === 'OCCUPY' || event.type === 'UPDATE' || event.type === 'RESET') {
+                    roomStateSnapshot[palletId].occupied = true;
+                    roomStateSnapshot[palletId].details = event.details;
+                    roomStateSnapshot[palletId].lastEvent = event;
+                    roomStateSnapshot[palletId].startEvent = event; // Will be overwritten if not an occupy event
+                    
+                    // Trace back to find the actual start event for this session
+                    for(const innerEvent of allHistory) {
+                        if (new Date(innerEvent.timestamp).getTime() > new Date(event.timestamp).getTime()) continue;
+                        if (!innerEvent.palletIds.includes(palletId) || innerEvent.room !== roomName) continue;
+                        if (['OCCUPY', 'RESET'].includes(innerEvent.type)) {
+                            roomStateSnapshot[palletId].startEvent = innerEvent;
+                            break;
+                        }
+                    }
+
+                } else if (event.type === 'DISCHARGE' || event.type === 'CLEAR') {
+                    roomStateSnapshot[palletId].occupied = false;
+                    roomStateSnapshot[palletId].details = null;
+                    roomStateSnapshot[palletId].lastEvent = event;
+                    lastClearEvent = event;
+
+                     // Trace back to find the start event that this discharge corresponds to
+                    for(const innerEvent of allHistory) {
+                        const innerEventTime = new Date(innerEvent.timestamp).getTime();
+                        if (innerEventTime >= new Date(event.timestamp).getTime()) continue; // must be before discharge
+                        if (!innerEvent.palletIds.includes(palletId) || innerEvent.room !== roomName) continue;
+                         if (['OCCUPY', 'RESET'].includes(innerEvent.type)) {
+                            roomStateSnapshot[palletId].startEvent = innerEvent;
+                            break;
+                        }
+                    }
+                }
+                lastStateFound = true;
+                break; // Exit after finding the most recent event
+            }
+        });
+
+        return roomStateSnapshot;
+    };
+
+
+    const renderSnapshotView = (roomName, targetDate) => {
+        const roomState = generateRoomStateAtTime(roomName, targetDate);
+        snapshotModalTitle.textContent = `Snapshot of ${roomName} at ${formatDateTime(targetDate)}`;
+        snapshotGrid.innerHTML = '';
+        const leftAisle = document.createElement('div');
+        leftAisle.className = 'pallet-aisle';
+        const rightAisle = document.createElement('div');
+        rightAisle.className = 'pallet-aisle';
+
+        for (const palletId in roomState) {
+            const palletSnapshot = roomState[palletId];
+            const palletDiv = document.createElement('div');
+            palletDiv.className = 'pallet';
+            
+            let palletName = palletId;
+            let title = `Pallet ${palletId} was empty.`;
+            let clickHandler = null;
+
+            if (palletSnapshot.occupied) {
+                palletDiv.classList.add('occupied');
+                palletName = palletSnapshot.details?.['Name'] || palletId;
+                title = `Click to view details for ${palletId}`;
+                clickHandler = () => {
+                    let detailsText = '';
+                    if (palletSnapshot.details) {
+                        for (const key in palletSnapshot.details) {
+                            detailsText += `<strong>${key}:</strong> ${palletSnapshot.details[key]}<br>`;
+                        }
+                    }
+                    if (palletSnapshot.startEvent) {
+                        detailsText += `<strong>Start Time:</strong> ${formatDateTime(palletSnapshot.startEvent.timestamp)}`;
+                    }
+                    showCustomAlert(`Details for Occupied Pallet ${palletId}`, detailsText);
+                };
+            } else {
+                palletDiv.classList.add('empty');
+                if (palletSnapshot.lastEvent && ['DISCHARGE', 'CLEAR'].includes(palletSnapshot.lastEvent.type)) {
+                    palletDiv.classList.add('snapshot-discharged');
+                    palletName = palletSnapshot.startEvent?.details?.['Name'] || palletId;
+                    title = `Click to view discharge details for ${palletId}`;
+                    clickHandler = () => {
+                        let detailsText = '';
+                        if (palletSnapshot.startEvent) {
+                            detailsText += `<p><strong>Original Start Time:</strong> ${formatDateTime(palletSnapshot.startEvent.timestamp)}</p>`;
+                            detailsText += '<p><strong>Previous Pallet Details:</strong></p>';
+                            for (const key in palletSnapshot.startEvent.details) {
+                                detailsText += `<strong>${key}:</strong> ${palletSnapshot.startEvent.details[key]}<br>`;
+                            }
+                        }
+                       
+                        detailsText += `<div class="details-section">
+                            <p class="discharged-title"><strong>Discharged at ${formatDateTime(palletSnapshot.lastEvent.timestamp)}</strong></p>
+                            <strong>Cartons:</strong> ${palletSnapshot.lastEvent.cartons || 'N/A'}<br>
+                            <strong>Unit:</strong> ${palletSnapshot.lastEvent.unit || 'N/A'}<br>
+                            <strong>Scrap:</strong> ${palletSnapshot.lastEvent.scrap || '0'} kg<br>
+                        </div>`;
+                        showCustomAlert(`Discharge Details for Pallet ${palletId}`, detailsText);
+                    };
+                }
+            }
+
+            palletDiv.innerHTML = `<span>${palletName}</span>`;
+            palletDiv.title = title;
+            if(clickHandler) palletDiv.onclick = clickHandler;
+
+            if (palletId.startsWith('L')) leftAisle.appendChild(palletDiv);
+            else rightAisle.appendChild(palletDiv);
+        }
+        
+        snapshotGrid.appendChild(leftAisle);
+        snapshotGrid.appendChild(document.createElement('div')).className = 'center-aisle';
+        snapshotGrid.appendChild(rightAisle);
+        openModal(snapshotModal);
+    };
+
+
+    // --- UI & FORM BUILDING ---
+    const buildOccupyForm = (container, palletData = {}) => {
+        container.innerHTML = '';
+        getFields().forEach(field => {
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'form-field';
+            const label = document.createElement('label');
+            label.textContent = field;
+            let inputElement;
+            const value = palletData[field] || '';
+            switch (field.toLowerCase()) {
+                case 'name':
+                    inputElement = document.createElement('select');
+                    PALLET_ITEMS.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.name;
+                        option.textContent = item.name;
+                        if (item.name === value) option.selected = true;
+                        inputElement.appendChild(option);
+                    });
+                    inputElement.addEventListener('change', () => {
+                        const selectedItem = PALLET_ITEMS.find(item => item.name === inputElement.value);
+                        const weightInput = container.querySelector('[data-field="Weight"]');
+                        if (weightInput) weightInput.value = selectedItem ? selectedItem.weight : 0;
+                    });
+                    break;
+                case 'description':
+                    inputElement = document.createElement('textarea');
+                    inputElement.rows = 3;
+                    inputElement.value = value;
+                    break;
+                case 'weight':
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'number';
+                    inputElement.readOnly = true;
+                    inputElement.style.backgroundColor = '#e9ecef';
+                    inputElement.value = value;
+                    break;
+                default:
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'text';
+                    inputElement.value = value;
+            }
+            inputElement.dataset.field = field;
+            fieldDiv.appendChild(label);
+            fieldDiv.appendChild(inputElement);
+            container.appendChild(fieldDiv);
+        });
+        const nameSelect = container.querySelector('[data-field="Name"]');
+        if (nameSelect) nameSelect.dispatchEvent(new Event('change'));
+    };
+
+    const renderCurrentRoom = () => {
+        const holdHours = getHoldDurationHours();
+        roomTitle.textContent = `${currentRoom} (${holdHours} Hour Hold)`;
+        const roomState = getMultiRoomState()[currentRoom];
+        for (const palletId in roomState) {
+            const palletDiv = document.getElementById(palletId);
+            const palletData = roomState[palletId];
+            const totalDuration = palletData.durationMs || DURATION_MS;
+            palletDiv.className = 'pallet';
+            if (palletData.occupied) {
+                const palletName = palletData.details ? (palletData.details['Name'] || palletId) : palletId;
+                const elapsedTime = new Date() - new Date(palletData.startTime);
+                if (elapsedTime >= totalDuration) {
+                    palletDiv.classList.add('expired');
+                    palletDiv.innerHTML = `<span class="pallet-label">${palletName}</span><span class="pallet-timer">EXPIRED</span>`;
+                } else {
+                    palletDiv.classList.add('occupied');
+                    const remainingMs = totalDuration - elapsedTime;
+                    palletDiv.innerHTML = `<span class="pallet-label">${palletName}</span><span class="pallet-timer">${formatTime(remainingMs)}</span>`;
+                }
+            } else {
+                if (palletData.lastDischargeEvent) {
+                    palletDiv.classList.add('recently-discharged');
+                    const prevName = palletData.lastDischargeEvent.details['Name'] || palletId;
+                    palletDiv.innerHTML = `<span>${prevName} (Empty)</span>`;
+
+                } else {
+                    palletDiv.classList.add('empty');
+                    palletDiv.textContent = palletId;
+                }
+            }
+        }
+        renderSelections();
+    };
+
+    const renderRoomTabs = () => {
+        roomTabsContainer.innerHTML = '';
+        ROOM_NAMES.forEach(name => {
+            const tab = document.createElement('div');
+            tab.className = 'room-tab';
+            tab.textContent = name;
+            tab.dataset.roomName = name;
+            if (name === currentRoom) tab.classList.add('active');
+            roomTabsContainer.appendChild(tab);
+        });
+        roomSelect.innerHTML = '';
+        ROOM_NAMES.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            if (name === currentRoom) option.selected = true;
+            roomSelect.appendChild(option);
+        });
+        reportRoomSelect.innerHTML = '<option value="all">All Rooms</option>';
+        ROOM_NAMES.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            reportRoomSelect.appendChild(option);
+        })
+    };
+    
+    // --- REPORTING & SEARCH LOGIC ---
+    const performLifecycleSearch = () => {
+        const searchDate = searchDateInput.value;
+        if (!searchDate) {
+            showCustomAlert('Error', 'Please select a date to search.');
+            return;
+        }
+
+        const allHistory = getHistory(); // This is reverse-chronological (newest first)
+        const searchStart = new Date(searchDate);
+        searchStart.setHours(0, 0, 0, 0);
+        const searchEnd = new Date(searchDate);
+        searchEnd.setHours(23, 59, 59, 999);
+
+        // Find all occupy/reset events on the selected date
+        const startEvents = allHistory.filter(event => {
+            if (!['OCCUPY', 'RESET'].includes(event.type)) return false;
+            const eventDate = new Date(event.timestamp);
+            return eventDate >= searchStart && eventDate <= searchEnd;
+        }).reverse(); // Process oldest first to find correct discharge event
+
+        if (startEvents.length === 0) {
+            searchResultsContainer.innerHTML = `<p>No pallets started on ${searchStart.toLocaleDateString()}.</p>`;
+            exportSearchCsvBtn.style.display = 'none';
+            return;
+        }
+        
+        const results = {};
+        lastLifecycleSearchResults = [];
+
+        startEvents.forEach(startEvent => {
+            const dischargeEvent = allHistory.find(event => 
+                (event.type === 'DISCHARGE' || event.type === 'CLEAR') &&
+                event.palletIds.some(id => startEvent.palletIds.includes(id)) &&
+                new Date(event.timestamp) > new Date(startEvent.timestamp)
+            );
+            
+            const itemName = (startEvent.details && startEvent.details.Name) ? startEvent.details.Name : 'Unknown';
+            if (!results[itemName]) {
+                results[itemName] = {
+                    count: 0,
+                    totalCartons: 0,
+                    totalScrap: 0,
+                    lifecycles: []
+                };
+            }
+            results[itemName].count++;
+            results[itemName].totalCartons += dischargeEvent ? (dischargeEvent.cartons || 0) : 0;
+            results[itemName].totalScrap += dischargeEvent ? (dischargeEvent.scrap || 0) : 0;
+            
+            const lifecycleData = {
+                start: startEvent,
+                end: dischargeEvent
+            };
+            results[itemName].lifecycles.push(lifecycleData);
+            lastLifecycleSearchResults.push(lifecycleData);
+        });
+
+        let tableHtml = '';
+        for (const itemName in results) {
+            const itemData = results[itemName];
+            tableHtml += `
+                <h3>${itemName} (Total Pallets: ${itemData.count}, Total Cartons: ${itemData.totalCartons}, Total Scrap: ${itemData.totalScrap.toFixed(2)} kg)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pallet</th>
+                            <th>Room</th>
+                            <th>Start Time</th>
+                            <th>Discharge Time</th>
+                            <th>Cartons</th>
+                            <th>Unit</th>
+                            <th>Scrap (kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            itemData.lifecycles.forEach(cycle => {
+                tableHtml += `
+                    <tr>
+                        <td>${cycle.start.palletIds.join(', ')}</td>
+                        <td>${cycle.start.room}</td>
+                        <td>${formatDateTime(cycle.start.timestamp)}</td>
+                        <td>${cycle.end ? formatDateTime(cycle.end.timestamp) : 'Still Occupied'}</td>
+                        <td>${cycle.end ? (cycle.end.cartons || 0) : 'N/A'}</td>
+                        <td>${cycle.end ? (cycle.end.unit || 'N/A') : 'N/A'}</td>
+                        <td>${cycle.end ? (cycle.end.scrap || 0) : 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            tableHtml += `</tbody></table>`;
+        }
+
+        searchResultsContainer.innerHTML = tableHtml || `<p>No results found for ${searchStart.toLocaleDateString()}.</p>`;
+        exportSearchCsvBtn.style.display = lastLifecycleSearchResults.length > 0 ? 'inline-flex' : 'none';
+    };
+    
+    const exportLifecycleResultsToCSV = () => {
+        const headers = ["Pallet", "Room", "Item Name", "Start Time", "Discharge Time", "Cartons", "Unit", "Scrap (kg)"];
+        const rows = lastLifecycleSearchResults.map(cycle => {
+            return [
+                cycle.start.palletIds.join(', '),
+                cycle.start.room,
+                cycle.start.details?.Name || 'Unknown',
+                formatDateTime(cycle.start.timestamp),
+                cycle.end ? formatDateTime(cycle.end.timestamp) : 'Still Occupied',
+                cycle.end ? (cycle.end.cartons || 0) : 'N/A',
+                cycle.end ? (cycle.end.unit || 'N/A') : 'N/A',
+                cycle.end ? (cycle.end.scrap || 0) : 'N/A'
+            ];
+        });
+        
+        const timestamp = searchDateInput.value || new Date().toISOString().slice(0, 10);
+        exportToCSV(headers, rows, `lifecycle_report_${timestamp}.csv`);
+    };
+
+    const generateReportData = (roomFilter = 'all') => {
+        const state = getMultiRoomState();
+        const reportData = {};
+        const roomsToScan = (roomFilter !== 'all') ? { [roomFilter]: state[roomFilter] } : state;
+
+        for (const roomName in roomsToScan) {
+            for (const palletId in state[roomName]) {
+                const pallet = state[roomName][palletId];
+                if (pallet.occupied && pallet.details) {
+                    const itemName = pallet.details['Name'];
+                    if (!itemName || itemName === "Select an Item") continue;
+
+                    if (!reportData[itemName]) {
+                        reportData[itemName] = { count: 0, totalRemainingMs: 0 };
+                    }
+
+                    reportData[itemName].count++;
+                    const totalDuration = pallet.durationMs || DURATION_MS;
+                    const elapsedTime = new Date() - new Date(pallet.startTime);
+                    let remainingMs = totalDuration - elapsedTime;
+                    if (remainingMs < 0) remainingMs = 0;
+                    
+                    reportData[itemName].totalRemainingMs += remainingMs;
+                }
+            }
+        }
+        return reportData;
+    };
+
+    const renderReport = () => {
+        const selectedRoom = reportRoomSelect.value;
+        const reportData = generateReportData(selectedRoom);
+        if (Object.keys(reportData).length === 0) {
+            reportContainer.innerHTML = "<p>No occupied pallets with items to report in the selected room(s).</p>";
+            exportCsvBtn.style.display = 'none';
+            return;
+        }
+
+        let tableHtml = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Total Pallets</th>
+                        <th>Avg. Remaining Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        for (const itemName in reportData) {
+            const item = reportData[itemName];
+            const avgRemainingMs = item.totalRemainingMs / item.count;
+            tableHtml += `
+                <tr>
+                    <td>${itemName}</td>
+                    <td>${item.count}</td>
+                    <td>${formatTime(avgRemainingMs)}</td>
+                </tr>
+            `;
+        }
+
+        tableHtml += `</tbody></table>`;
+        reportContainer.innerHTML = tableHtml;
+        exportCsvBtn.style.display = 'inline-flex';
+    };
+    
+    const exportToCSV = (headers, rows, filename) => {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += headers.join(",") + "\r\n";
+
+        rows.forEach(rowArray => {
+            let row = rowArray.map(item => `"${String(item).replace(/"/g, '""')}"`).join(",");
+            csvContent += row + "\r\n";
+        });
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // --- PALLET ACTIONS & MULTI-SELECT ---
+    const occupyPallet = (palletId) => {
+        const { details, allFieldsValid } = getFormData(modalBody);
+        if (!allFieldsValid) return showCustomAlert('Error', 'Please fill in all required details, including selecting an item name.');
+        const multiRoomState = getMultiRoomState();
+        multiRoomState[currentRoom][palletId] = { 
+            occupied: true, 
+            details, 
+            startTime: new Date().toISOString(), 
+            notificationSent: false, 
+            durationMs: DURATION_MS,
+            lastDischargeEvent: null
+        };
+        saveMultiRoomState(multiRoomState);
+        logHistory('OCCUPY', `Occupied pallet ${palletId}.`, currentRoom, palletId, details);
+        renderCurrentRoom();
+        closeModal(palletModal);
+    };
+
+    const clearPallet = (palletId) => {
+        dischargeModalTitle.textContent = `Discharge Pallet ${palletId} (${currentRoom})`;
+        dischargeCartonsInput.value = '';
+        dischargeUnitInput.value = '';
+        dischargeScrapInput.value = '';
+        openModal(dischargeModal);
+        dischargeModalConfirmBtn.dataset.palletId = palletId;
+    };
+
+    const confirmDischarge = () => {
+        const palletId = dischargeModalConfirmBtn.dataset.palletId;
+        const cartons = parseInt(dischargeCartonsInput.value, 10) || 0;
+        const unit = dischargeUnitInput.value.trim();
+        const scrap = parseFloat(dischargeScrapInput.value) || 0;
+        const multiRoomState = getMultiRoomState();
+        const pallet = multiRoomState[currentRoom][palletId];
+        const palletDetails = pallet.details;
+        const startTime = pallet.startTime;
+
+        const dischargeEvent = {
+            type: 'DISCHARGE',
+            message: `Discharged pallet ${palletId}.`,
+            room: currentRoom,
+            palletIds: [palletId],
+            details: {...palletDetails, startTime: startTime}, // Add start time to details for history
+            timestamp: new Date().toISOString(),
+            cartons,
+            unit,
+            scrap
+        };
+        
+        logHistory('DISCHARGE', dischargeEvent.message, currentRoom, palletId, palletDetails, { cartons, unit, scrap });
+
+        pallet.occupied = false;
+        pallet.details = null;
+        pallet.startTime = null;
+        pallet.notificationSent = false;
+        pallet.durationMs = null;
+        pallet.lastDischargeEvent = dischargeEvent;
+
+        saveMultiRoomState(multiRoomState);
+        
+        renderCurrentRoom();
+        closeModal(dischargeModal);
+        closeModal(palletModal);
+    };
+    
+    const clearCurrentRoom = () => {
+        showCustomConfirm(
+            `Clear ALL Pallets in ${currentRoom}`,
+            `This action will clear all occupied pallets in this room. This cannot be undone.`,
+            () => {
+                const multiRoomState = getMultiRoomState();
+                const roomState = multiRoomState[currentRoom];
+                const clearedIds = Object.keys(roomState).filter(id => roomState[id].occupied);
+                if (clearedIds.length > 0) {
+                    logHistory('CLEAR', `Cleared all ${clearedIds.length} occupied pallets from room.`, currentRoom, clearedIds, { 'Product ID': 'Multiple', Name: 'Multiple' });
+                }
+                for (const palletId in roomState) {
+                    roomState[palletId] = { occupied: false, details: null, startTime: null, notificationSent: false, durationMs: null, lastDischargeEvent: null };
+                }
+                saveMultiRoomState(multiRoomState);
+                renderCurrentRoom();
+            }
+        );
+    };
+
+    const savePalletChanges = (palletId) => {
+        const { details, allFieldsValid } = getFormData(modalBody);
+        if (!allFieldsValid) return showCustomAlert('Error', 'Please fill in all required details.');
+        const durationInput = document.getElementById('modal-duration-input');
+        const newDurationHours = parseFloat(durationInput.value);
+        if (!newDurationHours || newDurationHours <= 0) return showCustomAlert('Error', 'Please enter a valid number of hours.');
+        
+        showCustomConfirm('Save Changes?', 'Are you sure you want to save these changes? Modifying the duration will restart the timer.', () => {
+            const multiRoomState = getMultiRoomState();
+            const pallet = multiRoomState[currentRoom][palletId];
+            const oldDurationMs = pallet.durationMs || DURATION_MS;
+            const newDurationMs = newDurationHours * 3600000;
+            logHistory('UPDATE', `Updated details for pallet ${palletId}.`, currentRoom, palletId, details);
+            pallet.details = details;
+            if (oldDurationMs !== newDurationMs) {
+                pallet.durationMs = newDurationMs;
+                pallet.startTime = new Date().toISOString();
+                pallet.notificationSent = false;
+                logHistory('RESET', `Updated timer for pallet ${palletId} to ${newDurationHours} hours.`, currentRoom, palletId, details);
+            }
+            saveMultiRoomState(multiRoomState);
+            renderCurrentRoom();
+            closeModal(palletModal);
+        });
+    };
+
+    const resetMultipleTimers = () => {
+        showCustomConfirm(
+            'Reset Timers?',
+            `Are you sure you want to reset the timers for the ${selectedPallets.length} selected pallets? This will not change their details.`,
+            () => {
+                const multiRoomState = getMultiRoomState();
+                const newStartTime = new Date().toISOString();
+                selectedPallets.forEach(palletId => {
+                    const pallet = multiRoomState[currentRoom][palletId];
+                    if (pallet.occupied) {
+                        pallet.startTime = newStartTime;
+                        pallet.notificationSent = false;
+                    }
+                });
+                saveMultiRoomState(multiRoomState);
+                logHistory('RESET', `Reset timers for ${selectedPallets.length} pallets: ${selectedPallets.join(', ')}`, currentRoom, selectedPallets, getMultiRoomState()[currentRoom][selectedPallets[0]].details);
+                exitMultiSelectMode();
+            }
+        );
+    };
+
+    const occupyMultiplePallets = () => {
+        const { details, allFieldsValid } = getFormData(modalBody);
+        if (!allFieldsValid) {
+            showCustomAlert('Error', 'Please fill in all required details, including selecting an item name.');
+            return;
+        }
+        const multiRoomState = getMultiRoomState();
+        const startTime = new Date().toISOString();
+        const occupiedIds = [];
+        selectedPallets.forEach(palletId => {
+            if (!multiRoomState[currentRoom][palletId].occupied) {
+                multiRoomState[currentRoom][palletId] = { occupied: true, details, startTime, notificationSent: false, durationMs: DURATION_MS, lastDischargeEvent: null };
+                occupiedIds.push(palletId);
+            }
+        });
+        saveMultiRoomState(multiRoomState);
+        logHistory('OCCUPY', `Occupied ${occupiedIds.length} pallets: ${occupiedIds.join(', ')}`, currentRoom, occupiedIds, details);
+        exitMultiSelectMode();
+        closeModal(palletModal);
+    };
+
+    const updateMultiplePallets = () => {
+        const { details, allFieldsValid } = getFormData(modalBody);
+        if (!allFieldsValid) {
+            showCustomAlert('Error', 'Please fill in all fields to update.');
+            return;
+        }
+        
+        const durationInput = document.getElementById('modal-duration-input');
+        const newDurationHours = parseFloat(durationInput.value);
+        if (!newDurationHours || newDurationHours <= 0) {
+            showCustomAlert('Error', 'Please enter a valid number of hours.');
+            return;
+        }
+        const newDurationMs = newDurationHours * 3600000;
+
+        const multiRoomState = getMultiRoomState();
+        let timersReset = false;
+        selectedPallets.forEach(palletId => {
+            const pallet = multiRoomState[currentRoom][palletId];
+            if (pallet.occupied) {
+                pallet.details = details;
+                const oldDurationMs = pallet.durationMs || DURATION_MS;
+                if (oldDurationMs !== newDurationMs) {
+                    pallet.durationMs = newDurationMs;
+                    pallet.startTime = new Date().toISOString();
+                    pallet.notificationSent = false;
+                    timersReset = true;
+                }
+            }
+        });
+        saveMultiRoomState(multiRoomState);
+        const logMessage = `Updated details${timersReset ? ` and reset timers to ${newDurationHours} hours` : ''} for ${selectedPallets.length} pallets: ${selectedPallets.join(', ')}`;
+        logHistory('UPDATE', logMessage, currentRoom, selectedPallets, details);
+        exitMultiSelectMode();
+        closeModal(palletModal);
+    };
+    
+    // --- FIELD MANAGEMENT ---
+    const renderFieldList = () => {
+        fieldsList.innerHTML = '';
+        getFields().forEach(field => {
+            const isDefault = DEFAULT_FIELDS.map(f => f.toLowerCase()).includes(field.toLowerCase());
+            const fieldTag = document.createElement('div');
+            fieldTag.className = 'field-tag';
+            fieldTag.textContent = field;
+            if (!isDefault) {
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-field-btn';
+                removeBtn.dataset.field = field;
+                removeBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
+                fieldTag.appendChild(removeBtn);
+            }
+            fieldsList.appendChild(fieldTag);
+        });
+    };
+    
+    // --- Main UI functions ---
+    const formatTime = (ms) => {
+        if (ms < 0) ms = 0;
+        let seconds = Math.floor(ms / 1000);
+        let minutes = Math.floor(seconds / 60);
+        let hours = Math.floor(minutes / 60);
+        seconds %= 60; minutes %= 60;
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
+    
+    const enterMultiSelectMode = () => {
+        isMultiSelectMode = true;
+        storageRoomView.classList.add('multi-select-active');
+        multiActionContainer.style.display = 'flex';
+        menuContainer.style.display = 'none';
+        cancelMultiSelectBtn.style.display = 'inline-flex';
+        renderSelections();
+    };
+
+    const exitMultiSelectMode = () => {
+        isMultiSelectMode = false;
+        storageRoomView.classList.remove('multi-select-active');
+        multiActionContainer.style.display = 'none';
+        menuContainer.style.display = 'block';
+        cancelMultiSelectBtn.style.display = 'none';
+        selectedPallets = [];
+        renderCurrentRoom();
+    };
+
+
+    const handleMultiSelectClick = (palletId) => {
+        const index = selectedPallets.indexOf(palletId);
+        if (index > -1) selectedPallets.splice(index, 1);
+        else selectedPallets.push(palletId);
+        renderSelections();
+    };
+
+    const renderSelections = () => {
+        const roomState = getMultiRoomState()[currentRoom];
+        document.querySelectorAll('.pallet').forEach(p => p.classList.remove('selected'));
+        selectedPallets.forEach(id => {
+            const palletDiv = document.getElementById(id);
+            if (palletDiv) palletDiv.classList.add('selected');
+        });
+
+        let emptyCount = 0, occupiedCount = 0;
+        selectedPallets.forEach(id => {
+            if (roomState[id] && roomState[id].occupied) occupiedCount++;
+            else emptyCount++;
+        });
+
+        const previouslySelectedAction = multiActionSelect.value;
+        multiActionSelect.innerHTML = '<option value="">Select Action...</option>';
+
+        if (emptyCount > 0 && occupiedCount === 0) {
+            multiActionSelect.innerHTML += '<option value="occupy">Occupy Selected</option>';
+        }
+        if (occupiedCount > 0 && emptyCount === 0) {
+            multiActionSelect.innerHTML += '<option value="update">Update Details & Duration</option>';
+            multiActionSelect.innerHTML += '<option value="reset">Reset Timers Only</option>';
+        }
+        
+        if (Array.from(multiActionSelect.options).some(opt => opt.value === previouslySelectedAction)) {
+            multiActionSelect.value = previouslySelectedAction;
+        }
+
+        multiActionGoBtn.disabled = selectedPallets.length === 0 || multiActionSelect.value === '';
+    };
+
+    const getFormData = (container) => {
+        const details = {};
+        let allFieldsValid = true;
+        getFields().forEach(field => {
+            const input = container.querySelector(`[data-field="${field}"]`);
+            if (!input) return;
+            const value = input.value.trim();
+            if ((!value || value === "Select an Item") && !['description'].includes(field.toLowerCase())) {
+                allFieldsValid = false;
+            }
+            details[field] = value;
+        });
+        return { details, allFieldsValid };
+    };
+
+    const handlePalletClick = (palletId) => {
+        if (isMultiSelectMode) {
+            handleMultiSelectClick(palletId);
+            return;
+        }
+        const palletData = getMultiRoomState()[currentRoom][palletId];
+        if (palletData.occupied) {
+            showPalletDetailsView(palletId, palletData);
+        } else if (palletData.lastDischargeEvent) {
+            showLastDischargeDetailsView(palletId, palletData.lastDischargeEvent);
+        } else {
+            showOccupyForm(palletId);
+        }
+    };
+
+    const showOccupyForm = (palletId) => {
+        modalTitle.textContent = `Occupy Pallet ${palletId} (${currentRoom})`;
+        buildOccupyForm(modalBody);
+        modalActionBtn.className = 'btn btn-success';
+        modalActionBtn.textContent = 'Occupy Pallet';
+        modalActionBtn.onclick = () => occupyPallet(palletId);
+        modalUpdateBtn.style.display = 'none';
+        modalActionBtn.style.display = 'inline-block';
+        openModal(palletModal);
+    };
+    
+    const showLastDischargeDetailsView = (palletId, dischargeEvent) => {
+        modalTitle.textContent = `Last Contents of Pallet ${palletId}`;
+        let detailsText = '';
+        if (dischargeEvent.details) {
+            detailsText += '<p><strong>Previous Pallet Details:</strong></p>';
+            for (const key in dischargeEvent.details) {
+                if (key !== 'startTime') { // Don't show start time here
+                    detailsText += `<strong>${key}:</strong> ${dischargeEvent.details[key]}<br>`;
+                }
+            }
+            if (dischargeEvent.details.startTime) {
+                 detailsText += `<strong>Original Start Time:</strong> ${formatDateTime(dischargeEvent.details.startTime)}<br>`;
+            }
+        }
+        detailsText += `<div class="details-section">
+            <p class="discharged-title"><strong>Discharged at ${formatDateTime(dischargeEvent.timestamp)}</strong></p>
+            <strong>Cartons:</strong> ${dischargeEvent.cartons || 'N/A'}<br>
+            <strong>Unit:</strong> ${dischargeEvent.unit || 'N/A'}<br>
+            <strong>Scrap:</strong> ${dischargeEvent.scrap || '0'} kg<br>
+        </div>`;
+        modalBody.innerHTML = detailsText;
+        
+        modalActionBtn.style.display = 'none';
+        
+        modalUpdateBtn.className = 'btn btn-success';
+        modalUpdateBtn.textContent = 'Re-Occupy Pallet';
+        modalUpdateBtn.onclick = () => showOccupyForm(palletId);
+        
+        modalUpdateBtn.style.display = 'inline-block';
+        openModal(palletModal);
+    };
+
+
+    const showPalletDetailsView = (palletId, palletData) => {
+        modalTitle.textContent = `Pallet ${palletId} (${currentRoom}) Details`;
+        let detailsHtml = '';
+        for (const key in palletData.details) {
+            detailsHtml += `<p><strong>${key}:</strong> ${palletData.details[key]}</p>`;
+        }
+        detailsHtml += `<p><strong>Start Time:</strong> ${formatDateTime(palletData.startTime)}</p>`;
+        modalBody.innerHTML = detailsHtml;
+        modalActionBtn.style.display = 'inline-block';
+        modalActionBtn.className = 'btn btn-danger';
+        modalActionBtn.textContent = 'Discharge Pallet';
+        modalActionBtn.onclick = () => clearPallet(palletId);
+        modalUpdateBtn.style.display = 'inline-block';
+        modalUpdateBtn.textContent = 'Edit Pallet';
+        modalUpdateBtn.onclick = () => showEditPalletView(palletId, palletData);
+        openModal(palletModal);
+    };
+
+    const showEditPalletView = (palletId, palletData) => {
+        modalTitle.textContent = `Edit Pallet ${palletId} (${currentRoom})`;
+        buildOccupyForm(modalBody, palletData.details);
+        const currentDurationHours = (palletData.durationMs || DURATION_MS) / 3600000;
+        const durationField = `
+            <div class="form-field">
+                <label for="modal-duration-input">Hold Duration (Hours)</label>
+                <input type="number" id="modal-duration-input" value="${currentDurationHours}">
+            </div>`;
+        modalBody.insertAdjacentHTML('beforeend', durationField);
+        modalActionBtn.style.display = 'inline-block';
+        modalActionBtn.className = 'btn';
+        modalActionBtn.textContent = 'Cancel';
+        modalActionBtn.onclick = () => showPalletDetailsView(palletId, palletData);
+        modalUpdateBtn.style.display = 'inline-block';
+        modalUpdateBtn.textContent = 'Save Changes';
+        modalUpdateBtn.onclick = () => savePalletChanges(palletId);
+    };
+    
+    // --- APP INITIALIZATION ---
+    const initializeApp = () => {
+        // Set default datetime for history snapshot to now
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        historyDatetimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+        durationInput.value = getHoldDurationHours();
+        DURATION_MS = getHoldDurationHours() * 3600000;
+        for (let i = 1; i <= 13; i++) {
+            leftPalletsContainer.innerHTML += `<div id="L${i}" class="pallet"></div>`;
+            rightPalletsContainer.innerHTML += `<div id="R${i}" class="pallet"></div>`;
+        }
+        
+        ROOM_NAMES.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            historyRoomSelect.appendChild(option.cloneNode(true));
+        });
+
+        // Event Listeners
+        multiActionGoBtn.addEventListener('click', () => {
+             const action = multiActionSelect.value;
+             switch(action) {
+                 case 'occupy':
+                     modalTitle.textContent = `Occupy ${selectedPallets.length} Selected Pallets`;
+                     buildOccupyForm(modalBody);
+                     modalActionBtn.textContent = 'Confirm for All';
+                     modalActionBtn.className = 'btn btn-success';
+                     modalActionBtn.style.display = 'inline-block';
+                     modalUpdateBtn.style.display = 'none';
+                     modalActionBtn.onclick = occupyMultiplePallets;
+                     openModal(palletModal);
+                     break;
+                 case 'update':
+                      modalTitle.textContent = `Update Details for ${selectedPallets.length} Pallets`;
+                     buildOccupyForm(modalBody, getMultiRoomState()[currentRoom][selectedPallets[0]].details);
+                     const firstPalletData = getMultiRoomState()[currentRoom][selectedPallets[0]];
+                     const currentDurationHours = (firstPalletData.durationMs || DURATION_MS) / 3600000;
+                     const durationField = `
+                         <div class="form-field">
+                             <label for="modal-duration-input">Hold Duration (Hours)</label>
+                             <input type="number" id="modal-duration-input" value="${currentDurationHours}">
+                         </div>`;
+                     modalBody.insertAdjacentHTML('beforeend', durationField);
+                     modalActionBtn.textContent = 'Save for All';
+                     modalActionBtn.className = 'btn btn-success';
+                     modalActionBtn.style.display = 'inline-block';
+                     modalUpdateBtn.style.display = 'none';
+                     modalActionBtn.onclick = updateMultiplePallets;
+                     openModal(palletModal);
+                     break;
+                 case 'reset':
+                     resetMultipleTimers();
+                     break;
+             }
+        });
+
+        clearRoomBtn.addEventListener('click', clearCurrentRoom);
+        clearHistoryBtn.addEventListener('click', clearHistory);
+        toggleHistoryBtn.addEventListener('click', () => {
+            openModal(historyModal);
+        });
+        toggleReportBtn.addEventListener('click', () => {
+            openModal(reportModal);
+        });
+        toggleSettingsBtn.addEventListener('click', () => {
+            openModal(settingsModal);
+        });
+        toggleSearchBtn.addEventListener('click', () => {
+            openModal(searchModal);
+        });
+        performSearchBtn.addEventListener('click', performLifecycleSearch);
+        exportSearchCsvBtn.addEventListener('click', exportLifecycleResultsToCSV);
+
+
+        generateReportBtn.addEventListener('click', renderReport);
+        exportCsvBtn.addEventListener('click', () => {
+             const selectedRoom = reportRoomSelect.value;
+             const reportData = generateReportData(selectedRoom);
+             const headers = ["Item Name", "Total Pallets", "Avg Remaining Hours"];
+             const rows = Object.entries(reportData).map(([itemName, data]) => {
+                return [itemName, data.count, (data.totalRemainingMs / 3600000).toFixed(2)];
+             });
+             exportToCSV(headers, rows, `pallet_summary_report_${new Date().toISOString().slice(0, 10)}.csv`);
+        });
+
+        saveDurationBtn.addEventListener('click', () => {
+            const newDuration = parseInt(durationInput.value, 10);
+            if (newDuration && newDuration > 0) {
+                localStorage.setItem('palletHoldDuration', newDuration);
+                DURATION_MS = newDuration * 3600000;
+                renderCurrentRoom();
+                showCustomAlert('Success', `Default hold duration updated to ${newDuration} hours.`);
+            } else {
+                showCustomAlert('Error', 'Please enter a valid number of hours.');
+            }
+        });
+        viewHistoryStateBtn.addEventListener('click', () => {
+            const selectedDate = historyDatetimeInput.value;
+            const selectedRoom = historyRoomSelect.value;
+            if (!selectedDate) {
+                showCustomAlert('Error', 'Please select a date and time.');
+                return;
+            }
+            renderSnapshotView(selectedRoom, selectedDate);
+        });
+
+        const switchRoom = (roomName) => {
+            currentRoom = roomName;
+            if (isMultiSelectMode) exitMultiSelectMode();
+            document.querySelector('#aisle-filter button[data-aisle="all"]').click();
+            renderRoomTabs();
+            renderCurrentRoom();
+        };
+        
+        roomTabsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('room-tab')) switchRoom(e.target.dataset.roomName);
+        });
+        roomSelect.addEventListener('change', (e) => switchRoom(e.target.value));
+
+        aisleFilterContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const filter = e.target.dataset.aisle;
+                 aisleFilterContainer.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                 e.target.classList.add('active');
+                 roomLayout.classList.remove('filter-left', 'filter-right');
+                 if (filter === 'left') roomLayout.classList.add('filter-left');
+                 else if (filter === 'right') roomLayout.classList.add('filter-right');
+            }
+        });
+
+        roomLayout.addEventListener('click', (e) => {
+            const palletDiv = e.target.closest('.pallet');
+            if (palletDiv) handlePalletClick(palletDiv.id);
+        });
+
+        [modalCloseBtn, detailsAlertCloseBtn, dischargeModalCloseBtn, confirmModalCancelBtn, reportModalCloseBtn, historyModalCloseBtn, snapshotModalCloseBtn, settingsModalCloseBtn, searchModalCloseBtn].forEach(btn => {
+            btn.addEventListener('click', () => closeModal(btn.closest('.modal-backdrop')));
+        });
+        dischargeModalConfirmBtn.addEventListener('click', confirmDischarge);
+        
+        addFieldBtn.addEventListener('click', () => {
+            const fieldName = fieldNameInput.value.trim();
+            if (fieldName) {
+                const fields = getFields();
+                if (!fields.map(f=>f.toLowerCase()).includes(fieldName.toLowerCase())) {
+                    fields.push(fieldName);
+                    localStorage.setItem('noteFields', JSON.stringify(fields));
+                    renderFieldList();
+                } else {
+                    showCustomAlert('Error', 'This field already exists.');
+                }
+                fieldNameInput.value = '';
+            }
+        });
+        
+        fieldsList.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.remove-field-btn');
+            if (removeBtn) {
+                const fieldName = removeBtn.dataset.field;
+                let fields = getFields().filter(f => f !== fieldName);
+                localStorage.setItem('noteFields', JSON.stringify(fields));
+                renderFieldList();
+            }
+        });
+
+        historySearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('.history-entry').forEach(entry => {
+                const isVisible = entry.dataset.searchableContent.includes(searchTerm);
+                entry.style.display = isVisible ? 'flex' : 'none';
+            });
+        });
+        
+        // Menu Toggle Logic
+        menuToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            controlsMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!controlsMenu.contains(e.target) && !menuToggleBtn.contains(e.target)) {
+                controlsMenu.classList.remove('show');
+            }
+             if (e.target.closest('.menu-item')) {
+                 controlsMenu.classList.remove('show');
+            }
+        });
+        
+        multiSelectToggleBtn.addEventListener('click', enterMultiSelectMode);
+        cancelMultiSelectBtn.addEventListener('click', exitMultiSelectMode);
+
+
+        Notification.requestPermission();
+        setInterval(() => {
+            renderCurrentRoom();
+            updateDashboard();
+            // checkAndSendNotifications(); // This part is CPU intensive, can be optimized
+        }, 1000);
+        
+        // Initial Render
+        renderRoomTabs();
+        renderCurrentRoom();
+        renderFieldList();
+        renderHistory();
+        updateDashboard();
+    };
+    
+    initializeApp();
+});
+    </script>
+</body>
+</html>
+
