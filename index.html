@@ -108,6 +108,30 @@
             gap: 24px;
             padding: 24px 15px;
         }
+        
+        /* --- NEW AUTH CONTAINER --- */
+        #auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+        }
+        #auth-container h2 {
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        .auth-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        #auth-error {
+            color: var(--danger-color);
+            text-align: center;
+            margin-top: 15px;
+            min-height: 1.2em;
+        }
+
 
         h1, h2, h3 {
             color: var(--dark-text);
@@ -1007,13 +1031,33 @@
         <div class="header-content">
             <h1 class="app-title">Pallet Room Manager Pro</h1>
             <div>
-                 <span id="user-id-display" style="font-size: 0.8rem; color: var(--secondary-color); margin-right: 15px;"></span>
+                 <span id="user-display" style="font-size: 0.9rem; color: var(--secondary-color); margin-right: 15px;"></span>
+                 <button id="signout-btn" class="btn btn-danger" style="display: none;">Sign Out</button>
                  <button id="theme-toggle-btn" class="btn" title="Toggle Theme">
                     <svg class="icon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-5.4-5.4c0-1.81 1.87-3.25 4-3.25-.91 0-1.76.25-2.26.44-.44-.06-.9-.1-1.36-.1z"/></svg>
                 </button>
             </div>
         </div>
     </header>
+
+    <!-- NEW Auth Container -->
+    <div id="auth-container" class="card">
+        <h2>Login or Sign Up</h2>
+        <div class="form-field">
+            <label for="email-input">Email</label>
+            <input type="email" id="email-input" placeholder="you@example.com">
+        </div>
+        <div class="form-field">
+            <label for="password-input">Password</label>
+            <input type="password" id="password-input" placeholder="••••••••">
+        </div>
+        <p id="auth-error"></p>
+        <div class="auth-actions">
+            <button id="login-btn" class="btn btn-primary">Login</button>
+            <button id="signup-btn" class="btn">Sign Up</button>
+        </div>
+    </div>
+
 
     <!-- Main Application Container -->
     <div class="app-container" style="display: none;">
@@ -1357,7 +1401,7 @@
     <script type="module">
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, serverTimestamp, writeBatch, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1374,6 +1418,7 @@
         const getEl = (id) => document.getElementById(id);
         const loadingOverlay = getEl('loading-overlay');
         const appContainer = document.querySelector('.app-container');
+        const authContainer = getEl('auth-container');
         
         // --- CONFIGURATION & GLOBAL STATE ---
         const ROOM_NAMES = ["Room 1", "Room 2", "Room 3", "Room 4", "Room 5", "Room 6", "Room 7"];
@@ -1406,6 +1451,15 @@
         ];
 
         // --- ELEMENT REFERENCES ---
+        // Auth elements
+        const userDisplay = getEl('user-display');
+        const signoutBtn = getEl('signout-btn');
+        const emailInput = getEl('email-input');
+        const passwordInput = getEl('password-input');
+        const loginBtn = getEl('login-btn');
+        const signupBtn = getEl('signup-btn');
+        const authError = getEl('auth-error');
+
         const storageRoomView = getEl('storage-room-view');
         const roomTabsContainer = getEl('room-tabs');
         const roomSelect = getEl('room-select');
@@ -3294,100 +3348,151 @@
             messagingSenderId: "591276145074",
             appId: "1:591276145074:web:28710bb32b94407fb7ccab",
             measurementId: "G-XV7CDGZ7MK"
-            };
+            };        
+        if (!firebaseConfig.projectId) {
+            loadingOverlay.querySelector('.spinner').style.display = 'none';
+            loadingOverlay.querySelector('p').textContent = 'Error: Firebase configuration is missing. The app cannot start.';
+            console.error("Firebase config is missing or invalid. Please ensure the environment variables are set correctly.");
+            return; // Stop further execution
+        }
+
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
         
         appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
+        const setupFirestoreListeners = (currentUserId) => {
+            // Unsubscribe from old listeners if they exist
+            if (unsubscribeState) unsubscribeState();
+            if (unsubscribeSettings) unsubscribeSettings();
+            if (unsubscribeHistory) unsubscribeHistory();
+
+            // Subscribe to app state
+            const stateDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/appData/state`);
+            unsubscribeState = onSnapshot(stateDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    multiRoomState = docSnap.data();
+                } else {
+                    // Initialize state if it doesn't exist
+                    const initialState = {};
+                    ROOM_NAMES.forEach(room => {
+                        initialState[room] = {};
+                        for (let i = 1; i <= 13; i++) {
+                            initialState[room][`L${i}`] = { occupied: false, details: null, startTime: null };
+                            initialState[room][`R${i}`] = { occupied: false, details: null, startTime: null };
+                        }
+                    });
+                    setDoc(stateDocRef, initialState);
+                    multiRoomState = initialState;
+                }
+                renderCurrentRoom();
+                updateDashboard();
+            });
+
+            // Subscribe to settings
+            const settingsDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/appData/settings`);
+            unsubscribeSettings = onSnapshot(settingsDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    appSettings = docSnap.data();
+                } else {
+                    appSettings = { duration: 36, fields: [...DEFAULT_FIELDS, ...COOKING_FIELDS] };
+                    setDoc(settingsDocRef, appSettings);
+                }
+                DURATION_MS = getHoldDurationHours() * 3600000;
+                renderCurrentRoom();
+                 renderFieldManagementList();
+            });
+
+            // Subscribe to history
+            const historyCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/history`);
+            const q = query(historyCollectionRef, orderBy("timestamp", "desc"));
+            unsubscribeHistory = onSnapshot(q, (snapshot) => {
+                history = [];
+                historyDocs = [];
+                snapshot.forEach(doc => {
+                    history.push(doc.data());
+                    historyDocs.push(doc.id);
+                });
+                renderHistory();
+            });
+        }
+
+
         onAuthStateChanged(auth, async (user) => {
+            loadingOverlay.style.display = 'none';
             if (user) {
                 userId = user.uid;
-                getEl('user-id-display').textContent = `User ID: ${userId}`;
                 
-                // Unsubscribe from old listeners if they exist
+                // UI changes for logged-in state
+                appContainer.style.display = 'grid';
+                authContainer.style.display = 'none';
+                userDisplay.textContent = user.email;
+                signoutBtn.style.display = 'inline-flex';
+                
+                setupFirestoreListeners(userId);
+                
+
+            } else {
+                // UI changes for logged-out state
+                appContainer.style.display = 'none';
+                authContainer.style.display = 'block';
+                userDisplay.textContent = '';
+                signoutBtn.style.display = 'none';
+                
+                // Unsubscribe from listeners
                 if (unsubscribeState) unsubscribeState();
                 if (unsubscribeSettings) unsubscribeSettings();
                 if (unsubscribeHistory) unsubscribeHistory();
-
-                // Subscribe to app state
-                const stateDocRef = doc(db, `artifacts/${appId}/users/${userId}/appData/state`);
-                unsubscribeState = onSnapshot(stateDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        multiRoomState = docSnap.data();
-                    } else {
-                        // Initialize state if it doesn't exist
-                        const initialState = {};
-                        ROOM_NAMES.forEach(room => {
-                            initialState[room] = {};
-                            for (let i = 1; i <= 13; i++) {
-                                initialState[room][`L${i}`] = { occupied: false, details: null, startTime: null };
-                                initialState[room][`R${i}`] = { occupied: false, details: null, startTime: null };
-                            }
-                        });
-                        setDoc(stateDocRef, initialState);
-                        multiRoomState = initialState;
-                    }
-                    renderCurrentRoom();
-                    updateDashboard();
-                });
-
-                // Subscribe to settings
-                const settingsDocRef = doc(db, `artifacts/${appId}/users/${userId}/appData/settings`);
-                unsubscribeSettings = onSnapshot(settingsDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        appSettings = docSnap.data();
-                    } else {
-                        appSettings = { duration: 36, fields: [...DEFAULT_FIELDS, ...COOKING_FIELDS] };
-                        setDoc(settingsDocRef, appSettings);
-                    }
-                    DURATION_MS = getHoldDurationHours() * 3600000;
-                    renderCurrentRoom(); // Re-render room title with new duration
-                });
-
-                // Subscribe to history
-                const historyCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/history`);
-                const q = query(historyCollectionRef, orderBy("timestamp", "desc"));
-                unsubscribeHistory = onSnapshot(q, (snapshot) => {
-                    history = [];
-                    historyDocs = [];
-                    snapshot.forEach(doc => {
-                        history.push(doc.data());
-                        historyDocs.push(doc.id);
-                    });
-                    renderHistory();
-                });
-
-                // Hide loading and show app
-                loadingOverlay.style.display = 'none';
-                appContainer.style.display = 'grid';
-
-            } else {
-                // Handle user not signed in
-                loadingOverlay.querySelector('p').textContent = 'Authenticating...';
+                history = [];
+                multiRoomState = {};
             }
         });
 
-        // Sign in logic
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
+        // --- Auth Event Listeners ---
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            authError.textContent = '';
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Login Error:", error.message);
+                authError.textContent = error.message;
             }
-        } catch (error) {
-            console.error("Firebase Authentication Error:", error);
-            loadingOverlay.querySelector('p').textContent = 'Authentication Failed. Please refresh.';
-        }
+        });
+
+        signupBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            authError.textContent = '';
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Sign Up Error:", error.message);
+                authError.textContent = error.message;
+            }
+        });
+
+        signoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign Out Error:", error.message);
+                authError.textContent = error.message;
+            }
+        });
         
         initializeAppWithFirebase();
         setInterval(() => {
-            renderCurrentRoom();
-            updateDashboard();
+            if (auth.currentUser) {
+                renderCurrentRoom();
+                updateDashboard();
+            }
         }, 1000);
 
         });
     </script>
 </body>
 </html>
+
