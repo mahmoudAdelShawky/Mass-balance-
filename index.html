@@ -45,6 +45,43 @@
             transition: background-color 0.3s, color 0.3s;
         }
         
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-size: 1.2rem;
+            color: var(--dark-text);
+            flex-direction: column;
+        }
+        
+        .dark-theme #loading-overlay {
+             background-color: rgba(30, 41, 59, 0.8);
+             color: var(--dark-text);
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s ease infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+
         .app-header {
             background-color: var(--light-text);
             padding: 15px 20px;
@@ -82,7 +119,7 @@
             -webkit-text-fill-color: transparent;
             font-size: 2.2rem;
             font-weight: 700;
-            margin: 0 0 20px 0;
+            margin: 0;
         }
         h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 24px; font-weight: 600;}
         h3 { font-size: 1.25rem; font-weight: 600; }
@@ -862,24 +899,124 @@
                 margin-bottom: 10px;
             }
         }
+        
+        /* New styles for product ID search and history delete */
+        .history-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .delete-history-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        
+        .delete-history-btn:hover {
+            background-color: rgba(220, 38, 38, 0.1);
+        }
+        
+        .id-suggestion {
+            font-size: 0.85rem;
+            color: var(--secondary-color);
+            margin-top: 4px;
+        }
+        
+        .id-warning {
+            color: var(--danger-color);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .id-suggestion-text {
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .field-management {
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        
+        .field-management h4 {
+            margin-bottom: 10px;
+        }
+        
+        .field-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .field-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .edit-field-btn, .delete-field-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        
+        .edit-field-btn {
+            color: var(--primary-color);
+        }
+        
+        .delete-field-btn {
+            color: var(--danger-color);
+        }
+        
+        .edit-field-btn:hover, .delete-field-btn:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        
+        .search-by-id-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .search-by-id-controls input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
     </style>
 </head>
-<body dir="ltr">
-
+<body>
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Connecting to Firebase...</p>
+    </div>
     <!-- App Header -->
     <header class="app-header">
         <div class="header-content">
             <h1 class="app-title">Pallet Room Manager Pro</h1>
             <div>
+                 <span id="user-id-display" style="font-size: 0.8rem; color: var(--secondary-color); margin-right: 15px;"></span>
                  <button id="theme-toggle-btn" class="btn" title="Toggle Theme">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-5.4-5.4c0-1.81 1.87-3.25 4-3.25.91 0 1.76.25 2.26.44-.44-.06-.9-.1-1.36-.1z"/></svg>
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-5.4-5.4c0-1.81 1.87-3.25 4-3.25-.91 0-1.76.25-2.26.44-.44-.06-.9-.1-1.36-.1z"/></svg>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Main Application Container -->
-    <div class="app-container">
+    <div class="app-container" style="display: none;">
         
         <!-- Section 0: Dashboard -->
         <div id="dashboard" class="card">
@@ -964,7 +1101,7 @@
                             Summary Report
                         </button>
                         <button id="toggle-history-btn" class="menu-item">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8z"/><path d="M12 6a1 1 0 0 0-1 1v5a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L12 11.586V7a1 1 0 0 0-1-1z"/></svg>
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8z"/><path d="M12 6a1 1 0 0 0-1 1v5a1 1 0 0 0 .293-.707l3 3a1 1 0 0 0 1.414-1.414L12 11.586V7a1 1 0 0 0-1-1z"/></svg>
                             History Log
                         </button>
                         <button id="toggle-search-btn" class="menu-item">
@@ -1104,6 +1241,13 @@
                 </button>
                 <button id="clear-history-btn" class="btn btn-danger">Clear All History</button>
             </div>
+            
+            <!-- NEW: Product ID Search Controls -->
+            <div class="search-by-id-controls">
+                <input type="text" id="product-id-search" placeholder="Search by Product ID...">
+                <button id="search-by-id-btn" class="btn btn-primary">Search</button>
+            </div>
+            
             <input type="text" id="history-search" placeholder="Search history (e.g., L1, Cola, discharge)...">
             <div id="history-container"><p>No history yet.</p></div>
             <div class="modal-actions">
@@ -1162,6 +1306,14 @@
                     </div>
                     <div id="fields-list"></div>
                 </fieldset>
+                
+                <!-- NEW: Field Management Section -->
+                <div class="field-management">
+                    <h4>Manage Form Fields</h4>
+                    <div id="field-management-list">
+                        <!-- Fields will be populated here -->
+                    </div>
+                </div>
             </div>
             <div class="modal-actions">
                 <button id="settings-modal-close-btn" class="btn">Close</button>
@@ -1202,1731 +1354,2040 @@
         </div>
     </div>
 
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, onSnapshot, query, orderBy, serverTimestamp, writeBatch, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        document.addEventListener('DOMContentLoaded', async () => {
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
+        // --- FIREBASE & GLOBAL STATE ---
+        let db, auth, userId, appId;
+        let multiRoomState = {}; 
+        let appSettings = {}; 
+        let history = [];
+        let historyDocs = []; // Store document references for deletion
 
-    // --- CONFIGURATION & GLOBAL STATE ---
-    const ROOM_NAMES = ["Room 1", "Room 2", "Room 3", "Room 4", "Room 5", "Room 6", "Room 7"];
-    let currentRoom = ROOM_NAMES[0];
-    let DURATION_MS;
-    let isMultiSelectMode = false;
-    let selectedPallets = [];
-    let lastLifecycleSearchResults = [];
-    let lastSnapshotData = [];
-    let currentStatusFilter = 'all';
-    const COOKING_FIELDS = ["Cooking Date", "Total Cooking Weight", "Recipe", "Jelatine Batch", "Starch Batch", "Glucose Batch", "Suger Batch", "Flavours Batch","Flavours Name", "Colors Batch"];
+        let unsubscribeState, unsubscribeSettings, unsubscribeHistory;
+        
+        const getEl = (id) => document.getElementById(id);
+        const loadingOverlay = getEl('loading-overlay');
+        const appContainer = document.querySelector('.app-container');
+        
+        // --- CONFIGURATION & GLOBAL STATE ---
+        const ROOM_NAMES = ["Room 1", "Room 2", "Room 3", "Room 4", "Room 5", "Room 6", "Room 7"];
+        let currentRoom = ROOM_NAMES[0];
+        let DURATION_MS;
+        let isMultiSelectMode = false;
+        let selectedPallets = [];
+        let lastLifecycleSearchResults = [];
+        let lastSnapshotData = [];
+        let currentStatusFilter = 'all';
+        const COOKING_FIELDS = ["Cooking Date", "Total Cooking Weight", "Recipe", "Jelatine Batch", "Starch Batch", "Glucose Batch", "Suger Batch", "Flavours Batch", "Colors Batch"];
 
-    // --- REAL DATA FOR ITEM WEIGHTS ---
-    const PALLET_ITEMS = [
-        { name: "Select an Item", weight: 0 }, { name: "Cola", weight: 211.1 }, 
-        { name: "Bears", weight: 205.5 }, { name: "Numbers", weight: 195.0 }, 
-        { name: "Heart", weight: 195.0 }, { name: "Star", weight: 190.2 }, 
-        { name: "Letters", weight: 195.0 }, { name: "Worm", weight: 204.1 }, 
-        { name: "Dinosaur", weight: 168.5 }, { name: "Big Worm", weight: 209.3 }, 
-        { name: "Big Cola", weight: 196.3 }, { name: "Benz", weight: 140.4 }, 
-        { name: "Cherry", weight: 154.7 }, { name: "Crocodile", weight: 163.7 }, 
-        { name: "Camel", weight: 165.2 }, { name: "Ring", weight: 189.3 }, 
-        { name: "Doll", weight: 175.0 }, { name: "Bone", weight: 174.2 }, 
-        { name: "Pharaohs", weight: 171.1 }, { name: "Strawberry", weight: 187.0 }, 
-        { name: "Rabbit", weight: 128.3 }, { name: "Segment", weight: 188.1 }, 
-        { name: "shark", weight: 180.8 }, { name: "Carrot", weight: 217.0 }, 
-        { name: "Teeth", weight: 180.1 }, { name: "Medical adhesive", weight: 194.4 }, 
-        { name: "Vehicles", weight: 178.8 }, { name: "turtle", weight: 194.4 }, 
-        { name: "Big Medical adhesive", weight: 194.4 }, { name: "Watermelon", weight: 279.9 }
-    ];
+        // --- REAL DATA FOR ITEM WEIGHTS ---
+        const PALLET_ITEMS = [
+            { name: "Select an Item", weight: 0 }, { name: "Cola", weight: 211.1 }, 
+            { name: "Bears", weight: 205.5 }, { name: "Numbers", weight: 195.0 }, 
+            { name: "Heart", weight: 195.0 }, { name: "Star", weight: 190.2 }, 
+            { name: "Letters", weight: 195.0 }, { name: "Worm", weight: 204.1 }, 
+            { name: "Dinosaur", weight: 168.5 }, { name: "Big Worm", weight: 209.3 }, 
+            { name: "Big Cola", weight: 196.3 }, { name: "Benz", weight: 140.4 }, 
+            { name: "Cherry", weight: 154.7 }, { name: "Crocodile", weight: 163.7 }, 
+            { name: "Camel", weight: 165.2 }, { name: "Ring", weight: 189.3 }, 
+            { name: "Doll", weight: 175.0 }, { name: "Bone", weight: 174.2 }, 
+            { name: "Pharaohs", weight: 171.1 }, { name: "Strawberry", weight: 187.0 }, 
+            { name: "Rabbit", weight: 128.3 }, { name: "Segment", weight: 188.1 }, 
+            { name: "shark", weight: 180.8 }, { name: "Carrot", weight: 217.0 }, 
+            { name: "Teeth", weight: 180.1 }, { name: "Medical adhesive", weight: 194.4 }, 
+            { name: "Vehicles", weight: 178.8 }, { name: "turtle", weight: 194.4 }, 
+            { name: "Big Medical adhesive", weight: 194.4 }, { name: "Watermelon", weight: 279.9 }
+        ];
 
-    // --- ELEMENT REFERENCES ---
-    const getEl = (id) => document.getElementById(id);
-    const storageRoomView = getEl('storage-room-view');
-    const roomTabsContainer = getEl('room-tabs');
-    const roomSelect = getEl('room-select');
-    const roomTitle = getEl('room-title');
-    const roomLayout = getEl('room-layout');
-    const leftPalletsContainer = getEl('left-pallets');
-    const rightPalletsContainer = getEl('right-pallets');
-    const aisleFilterContainer = getEl('aisle-filter');
-    const multiSelectToggleBtn = getEl('multi-select-toggle');
-    const multiActionContainer = getEl('multi-action-container');
-    const multiActionButton = getEl('multi-action-button');
-    const multiActionDropdown = getEl('multi-action-dropdown');
-    const multiActionGoBtn = getEl('multi-action-go');
-    const toggleHistoryBtn = getEl('toggle-history-btn');
-    const toggleReportBtn = getEl('toggle-report-btn');
-    const toggleSettingsBtn = getEl('toggle-settings-btn');
-    const toggleSearchBtn = getEl('toggle-search-btn');
-    const clearRoomBtn = getEl('clear-room-btn');
-    const durationInput = getEl('duration-input');
-    const saveDurationBtn = getEl('save-duration-btn');
-    const filterBanner = getEl('filter-banner');
-    const filterText = getEl('filter-text');
-    const clearFilterBtn = getEl('clear-filter-btn');
-    const themeToggleBtn = getEl('theme-toggle-btn');
-    const calculateScrapBtn = getEl('calculate-scrap-btn');
+        // --- ELEMENT REFERENCES ---
+        const storageRoomView = getEl('storage-room-view');
+        const roomTabsContainer = getEl('room-tabs');
+        const roomSelect = getEl('room-select');
+        const roomTitle = getEl('room-title');
+        const roomLayout = getEl('room-layout');
+        const leftPalletsContainer = getEl('left-pallets');
+        const rightPalletsContainer = getEl('right-pallets');
+        const aisleFilterContainer = getEl('aisle-filter');
+        const multiSelectToggleBtn = getEl('multi-select-toggle');
+        const multiActionContainer = getEl('multi-action-container');
+        const multiActionButton = getEl('multi-action-button');
+        const multiActionDropdown = getEl('multi-action-dropdown');
+        const multiActionGoBtn = getEl('multi-action-go');
+        const toggleHistoryBtn = getEl('toggle-history-btn');
+        const toggleReportBtn = getEl('toggle-report-btn');
+        const toggleSettingsBtn = getEl('toggle-settings-btn');
+        const toggleSearchBtn = getEl('toggle-search-btn');
+        const clearRoomBtn = getEl('clear-room-btn');
+        const durationInput = getEl('duration-input');
+        const saveDurationBtn = getEl('save-duration-btn');
+        const filterBanner = getEl('filter-banner');
+        const filterText = getEl('filter-text');
+        const clearFilterBtn = getEl('clear-filter-btn');
+        const themeToggleBtn = getEl('theme-toggle-btn');
+        const calculateScrapBtn = getEl('calculate-scrap-btn');
 
-    
-    // History Modal Elements
-    const historyContainer = getEl('history-container');
-    const historyRoomSelect = getEl('history-room-select');
-    const historyDatetimeInput = getEl('history-datetime-input');
-    const viewHistoryStateBtn = getEl('view-history-state-btn');
-    const clearHistoryBtn = getEl('clear-history-btn');
-    const historySearchInput = getEl('history-search');
-    const exportHistoryCsvBtn = getEl('export-history-csv-btn');
-    
-    const fieldNameInput = getEl('field-name-input');
-    const addFieldBtn = getEl('add-field-btn');
-    const fieldsList = getEl('fields-list');
-    
-    // Report Elements
-    const reportModal = getEl('report-modal');
-    const reportRoomSelect = getEl('report-room-select');
-    const reportModalCloseBtn = getEl('report-modal-close-btn');
-    const generateReportBtn = getEl('generate-report-btn');
-    const exportCsvBtn = getEl('export-csv-btn');
-    const reportContainer = getEl('report-container');
+        // NEW: Product ID search elements
+        const productIdSearchInput = getEl('product-id-search');
+        const searchByIdBtn = getEl('search-by-id-btn');
+        
+        // History Modal Elements
+        const historyContainer = getEl('history-container');
+        const historyRoomSelect = getEl('history-room-select');
+        const historyDatetimeInput = getEl('history-datetime-input');
+        const viewHistoryStateBtn = getEl('view-history-state-btn');
+        const clearHistoryBtn = getEl('clear-history-btn');
+        const historySearchInput = getEl('history-search');
+        const exportHistoryCsvBtn = getEl('export-history-csv-btn');
+        
+        const fieldNameInput = getEl('field-name-input');
+        const addFieldBtn = getEl('add-field-btn');
+        const fieldsList = getEl('fields-list');
+        
+        // NEW: Field management elements
+        const fieldManagementList = getEl('field-management-list');
+        
+        // Report Elements
+        const reportModal = getEl('report-modal');
+        const reportRoomSelect = getEl('report-room-select');
+        const reportModalCloseBtn = getEl('report-modal-close-btn');
+        const generateReportBtn = getEl('generate-report-btn');
+        const exportCsvBtn = getEl('export-csv-btn');
+        const reportContainer = getEl('report-container');
 
-    // Search Elements
-    const searchModal = getEl('search-modal');
-    const searchDateInput = getEl('search-date-input');
-    const performSearchBtn = getEl('perform-search-btn');
-    const searchResultsContainer = getEl('search-results-container');
-    const searchModalCloseBtn = getEl('search-modal-close-btn');
-    const exportSearchCsvBtn = getEl('export-search-csv-btn');
+        // Search Elements
+        const searchModal = getEl('search-modal');
+        const searchDateInput = getEl('search-date-input');
+        const performSearchBtn = getEl('perform-search-btn');
+        const searchResultsContainer = getEl('search-results-container');
+        const searchModalCloseBtn = getEl('search-modal-close-btn');
+        const exportSearchCsvBtn = getEl('export-search-csv-btn');
 
-    // Menu Elements
-    const menuToggleBtn = getEl('menu-toggle-btn');
-    const controlsMenu = getEl('controls-menu');
-    const cancelMultiSelectBtn = getEl('cancel-multi-select-btn');
-    const menuContainer = getEl('menu-container');
+        // Menu Elements
+        const menuToggleBtn = getEl('menu-toggle-btn');
+        const controlsMenu = getEl('controls-menu');
+        const cancelMultiSelectBtn = getEl('cancel-multi-select-btn');
+        const menuContainer = getEl('menu-container');
 
-    // Status Filter Elements
-    const statusFilterBtns = document.querySelectorAll('.status-filter-btn, #status-filter-mobile button');
-    const statusFilterMobile = getEl('status-filter-mobile');
+        // Status Filter Elements
+        const statusFilterBtns = document.querySelectorAll('.status-filter-btn, #status-filter-mobile button');
+        const statusFilterMobile = getEl('status-filter-mobile');
 
-    // Dashboard Stats
-    const dashboard = getEl('dashboard');
-    const statOccupied = getEl('stat-occupied');
-    const statEmpty = getEl('stat-empty');
-    const statExpired = getEl('stat-expired');
+        // Dashboard Stats
+        const dashboard = getEl('dashboard');
+        const statOccupied = getEl('stat-occupied');
+        const statEmpty = getEl('stat-empty');
+        const statExpired = getEl('stat-expired');
 
-    // Modals
-    const palletModal = getEl('pallet-modal');
-    const modalTitle = getEl('modal-title');
-    const modalBody = getEl('modal-body');
-    const modalUpdateBtn = getEl('modal-update-btn');
-    const modalActionBtn = getEl('modal-action-btn');
-    const modalCloseBtn = getEl('modal-close-btn');
-    const cookingModal = getEl('cooking-modal');
-    const cookingModalTitle = getEl('cooking-modal-title');
-    const cookingModalBody = getEl('cooking-modal-body');
-    const cookingModalCloseBtn = getEl('cooking-modal-close-btn');
-    const cookingModalConfirmBtn = getEl('cooking-modal-confirm-btn');
-    const dischargeModal = getEl('discharge-modal');
-    const dischargeModalTitle = getEl('discharge-modal-title');
-    const dischargeCartonsInput = getEl('discharge-cartons');
-    const dischargeUnitInput = getEl('discharge-unit');
-    const dischargeScrapInput = getEl('discharge-scrap');
-    const dischargeModalCloseBtn = getEl('discharge-modal-close-btn');
-    const dischargeModalConfirmBtn = getEl('discharge-modal-confirm-btn');
-    const snapshotModal = getEl('snapshot-modal');
-    const snapshotModalTitle = getEl('snapshot-modal-title');
-    const snapshotTableBody = getEl('snapshot-table-body');
-    const snapshotModalCloseBtn = getEl('snapshot-modal-close-btn');
-    const exportSnapshotCsvBtn = getEl('export-snapshot-csv-btn');
-    const detailsAlertModal = getEl('details-alert-modal');
-    const detailsAlertTitle = getEl('details-alert-title');
-    const detailsAlertBody = getEl('details-alert-body');
-    const detailsAlertCloseBtn = getEl('details-alert-close-btn');
-    const confirmModal = getEl('confirm-modal');
-    const confirmModalTitle = getEl('confirm-modal-title');
-    const confirmModalBody = getEl('confirm-modal-body');
-    const confirmModalCancelBtn = getEl('confirm-modal-cancel-btn');
-    const confirmModalConfirmBtn = getEl('confirm-modal-confirm-btn');
-    const historyModal = getEl('history-modal');
-    const historyModalCloseBtn = getEl('history-modal-close-btn');
-    const settingsModal = getEl('settings-modal');
-    const settingsModalCloseBtn = getEl('settings-modal-close-btn');
-    const scrapModal = getEl('scrap-modal');
-    const scrapSummaryContainer = getEl('scrap-summary-container');
-    const scrapModalCloseBtn = getEl('scrap-modal-close-btn');
+        // Modals
+        const palletModal = getEl('pallet-modal');
+        const modalTitle = getEl('modal-title');
+        const modalBody = getEl('modal-body');
+        const modalUpdateBtn = getEl('modal-update-btn');
+        const modalActionBtn = getEl('modal-action-btn');
+        const modalCloseBtn = getEl('modal-close-btn');
+        const cookingModal = getEl('cooking-modal');
+        const cookingModalTitle = getEl('cooking-modal-title');
+        const cookingModalBody = getEl('cooking-modal-body');
+        const cookingModalCloseBtn = getEl('cooking-modal-close-btn');
+        const cookingModalConfirmBtn = getEl('cooking-modal-confirm-btn');
+        const dischargeModal = getEl('discharge-modal');
+        const dischargeModalTitle = getEl('discharge-modal-title');
+        const dischargeCartonsInput = getEl('discharge-cartons');
+        const dischargeUnitInput = getEl('discharge-unit');
+        const dischargeScrapInput = getEl('discharge-scrap');
+        const dischargeModalCloseBtn = getEl('discharge-modal-close-btn');
+        const dischargeModalConfirmBtn = getEl('discharge-modal-confirm-btn');
+        const snapshotModal = getEl('snapshot-modal');
+        const snapshotModalTitle = getEl('snapshot-modal-title');
+        const snapshotTableBody = getEl('snapshot-table-body');
+        const snapshotModalCloseBtn = getEl('snapshot-modal-close-btn');
+        const exportSnapshotCsvBtn = getEl('export-snapshot-csv-btn');
+        const detailsAlertModal = getEl('details-alert-modal');
+        const detailsAlertTitle = getEl('details-alert-title');
+        const detailsAlertBody = getEl('details-alert-body');
+        const detailsAlertCloseBtn = getEl('details-alert-close-btn');
+        const confirmModal = getEl('confirm-modal');
+        const confirmModalTitle = getEl('confirm-modal-title');
+        const confirmModalBody = getEl('confirm-modal-body');
+        const confirmModalCancelBtn = getEl('confirm-modal-cancel-btn');
+        const confirmModalConfirmBtn = getEl('confirm-modal-confirm-btn');
+        const historyModal = getEl('history-modal');
+        const historyModalCloseBtn = getEl('history-modal-close-btn');
+        const settingsModal = getEl('settings-modal');
+        const settingsModalCloseBtn = getEl('settings-modal-close-btn');
+        const scrapModal = getEl('scrap-modal');
+        const scrapSummaryContainer = getEl('scrap-summary-container');
+        const scrapModalCloseBtn = getEl('scrap-modal-close-btn');
 
-    
-    const DEFAULT_FIELDS = ["Product ID", "Name", "Description", "Weight"];
+        
+        const DEFAULT_FIELDS = ["Product ID", "Name", "Description", "Weight"];
+        
+        // --- DATA HANDLING ---
+        const getFields = () => appSettings.fields || [...DEFAULT_FIELDS, ...COOKING_FIELDS];
+        const getHoldDurationHours = () => appSettings.duration || 36;
+        
+        // --- UTILITY FUNCTIONS ---
+        const formatDateTime = (dateString) => {
+            if (!dateString) return 'N/A';
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
+            return new Date(dateString).toLocaleString('en-US', options);
+        };
+        
+        const getCurrentDateTimeForInput = () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            return now.toISOString().slice(0, 16);
+        };
+        
+        const formatTime = (ms) => {
+            if (ms < 0) ms = 0;
+            let seconds = Math.floor(ms / 1000);
+            let hours = Math.floor(seconds / 3600);
+            seconds %= 3600;
+            let minutes = Math.floor(seconds / 60);
+            seconds %= 60;
 
-    // --- DATA HANDLING ---
-    const getFields = () => JSON.parse(localStorage.getItem('noteFields') || JSON.stringify(DEFAULT_FIELDS));
-    const getHoldDurationHours = () => parseInt(localStorage.getItem('palletHoldDuration') || '36', 10);
-    const getHistory = () => JSON.parse(localStorage.getItem('palletHistory') || '[]');
-    const saveHistory = (history) => localStorage.setItem('palletHistory', JSON.stringify(history));
-
-    const getMultiRoomState = () => {
-        const state = JSON.parse(localStorage.getItem('multiRoomState'));
-        if (state) return state;
-        const initialState = {};
-        ROOM_NAMES.forEach(roomName => {
-            initialState[roomName] = {};
-            for (let i = 1; i <= 13; i++) {
-                initialState[roomName][`L${i}`] = { occupied: false, details: null, startTime: null, notificationSent: false, durationMs: null };
-                initialState[roomName][`R${i}`] = { occupied: false, details: null, startTime: null, notificationSent: false, durationMs: null };
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        };
+        
+        // --- MODAL & ALERT LOGIC ---
+        const openModal = (modalEl) => {
+            modalEl.classList.add('visible');
+        };
+        const closeModal = (modalEl) => {
+            modalEl.classList.remove('visible');
+        };
+        
+        const showToast = (message, type = 'success') => {
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.style.position = 'fixed';
+                toastContainer.style.bottom = '20px';
+                toastContainer.style.right = '20px';
+                toastContainer.style.zIndex = '2000';
+                document.body.appendChild(toastContainer);
             }
-        });
-        return initialState;
-    };
-    const saveMultiRoomState = (state) => {
-        localStorage.setItem('multiRoomState', JSON.stringify(state));
-        updateDashboard();
-    };
-    
-    // --- UTILITY FUNCTIONS ---
-    const formatDateTime = (dateString) => {
-        if (!dateString) return 'N/A';
-        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-        return new Date(dateString).toLocaleString('en-US', options);
-    };
-    
-    const getCurrentDateTimeForInput = () => {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        return now.toISOString().slice(0, 16);
-    };
-    
-    // Add the missing formatTime function
-    const formatTime = (ms) => {
-        let seconds = Math.floor(ms / 1000);
-        let hours = Math.floor(seconds / 3600);
-        seconds %= 3600;
-        let minutes = Math.floor(seconds / 60);
-        seconds %= 60;
 
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    };
-    
-    // --- MODAL & ALERT LOGIC ---
-    const openModal = (modalEl) => {
-        modalEl.classList.add('visible');
-    };
-    const closeModal = (modalEl) => {
-        modalEl.classList.remove('visible');
-    };
-    
-    const showToast = (message, type = 'success') => {
-        let toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toast-container';
-            toastContainer.style.position = 'fixed';
-            toastContainer.style.bottom = '20px';
-            toastContainer.style.right = '20px';
-            toastContainer.style.zIndex = '2000';
-            document.body.appendChild(toastContainer);
-        }
-
-        const toast = document.createElement('div');
-        toast.style.backgroundColor = type === 'success' ? 'var(--success-color)' : 'var(--danger-color)';
-        toast.style.color = 'white';
-        toast.style.padding = '15px 20px';
-        toast.style.borderRadius = 'var(--border-radius)';
-        toast.style.boxShadow = 'var(--shadow-lg)';
-        toast.style.marginBottom = '10px';
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.3s, transform 0.3s';
-        toast.style.transform = 'translateY(20px)';
-        toast.textContent = message;
-        toastContainer.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '1';
-            toast.style.transform = 'translateY(0)';
-        }, 10);
-        
-        setTimeout(() => {
+            const toast = document.createElement('div');
+            toast.style.backgroundColor = type === 'success' ? 'var(--success-color)' : 'var(--danger-color)';
+            toast.style.color = 'white';
+            toast.style.padding = '15px 20px';
+            toast.style.borderRadius = 'var(--border-radius)';
+            toast.style.boxShadow = 'var(--shadow-lg)';
+            toast.style.marginBottom = '10px';
             toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s, transform 0.3s';
             toast.style.transform = 'translateY(20px)';
-            toast.addEventListener('transitionend', () => toast.remove());
-        }, 3000);
-    };
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
 
-    const showCustomAlert = (title, message) => {
-        detailsAlertTitle.textContent = title;
-        detailsAlertBody.innerHTML = message;
-        openModal(detailsAlertModal);
-    };
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            }, 10);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        };
 
-    const showCustomConfirm = (title, message, onConfirm) => {
-        confirmModalTitle.textContent = title;
-        confirmModalBody.textContent = message;
+        const showCustomAlert = (title, message) => {
+            detailsAlertTitle.textContent = title;
+            detailsAlertBody.innerHTML = message;
+            openModal(detailsAlertModal);
+        };
 
-        const newConfirmBtn = confirmModalConfirmBtn.cloneNode(true);
-        confirmModalConfirmBtn.parentNode.replaceChild(newConfirmBtn, confirmModalConfirmBtn);
+        const showCustomConfirm = (title, message, onConfirm) => {
+            confirmModalTitle.textContent = title;
+            confirmModalBody.textContent = message;
+
+            const newConfirmBtn = confirmModalConfirmBtn.cloneNode(true);
+            confirmModalConfirmBtn.parentNode.replaceChild(newConfirmBtn, confirmModalConfirmBtn);
+            
+            newConfirmBtn.addEventListener('click', () => {
+                onConfirm();
+                closeModal(confirmModal);
+            }, { once: true });
+
+            openModal(confirmModal);
+        };
         
-        newConfirmBtn.addEventListener('click', () => {
-            onConfirm();
-            closeModal(confirmModal);
-        }, { once: true });
+        // --- DASHBOARD ---
+        const updateDashboard = () => {
+            if (!multiRoomState) return;
+            let occupied = 0, expired = 0, totalPallets = 0;
+            DURATION_MS = getHoldDurationHours() * 3600000;
 
-        openModal(confirmModal);
-    };
-    
-    // --- DASHBOARD ---
-    const updateDashboard = () => {
-        const state = getMultiRoomState();
-        let occupied = 0, expired = 0, totalPallets = 0;
-
-        for (const roomName in state) {
-            for (const palletId in state[roomName]) {
-                totalPallets++;
-                const pallet = state[roomName][palletId];
-                if (pallet.occupied) {
-                    occupied++;
-                    const totalDuration = pallet.durationMs || DURATION_MS;
-                    const elapsedTime = new Date() - new Date(pallet.startTime);
-                    if (elapsedTime >= totalDuration) {
-                        expired++;
+            for (const roomName in multiRoomState) {
+                for (const palletId in multiRoomState[roomName]) {
+                    totalPallets++;
+                    const pallet = multiRoomState[roomName][palletId];
+                    if (pallet.occupied) {
+                        occupied++;
+                        const totalDuration = pallet.durationMs || DURATION_MS;
+                        const elapsedTime = new Date() - new Date(pallet.startTime);
+                        if (elapsedTime >= totalDuration) {
+                            expired++;
+                        }
                     }
                 }
             }
-        }
-        statOccupied.textContent = occupied;
-        statEmpty.textContent = totalPallets - occupied;
-        statExpired.textContent = expired;
-    };
-
-
-    // --- HISTORY LOGIC ---
-    const logHistory = (type, message, room, palletIds, details = {}, extra = {}) => {
-        let history = getHistory();
-        const event = { type, message, room, palletIds: Array.isArray(palletIds) ? palletIds : [palletIds], details, timestamp: new Date().toISOString(), ...extra };
-        history.unshift(event);
-        if (history.length > 500) history.pop();
-        saveHistory(history);
-        renderHistory();
-    };
-
-    const renderHistory = () => {
-        const history = getHistory();
-        if (!history.length) {
-            historyContainer.innerHTML = '<p>No history yet.</p>';
-            return;
-        }
-
-        historyContainer.innerHTML = '';
-        const iconMap = {
-            OCCUPY: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-3v3h-2v-3H9v-2h3V8h2v3h3v2z"/></svg>', class: 'occupy' },
-            CLEAR: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>', class: 'clear' },
-            UPDATE: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>', class: 'update' },
-            RESET: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>', class: 'reset' },
-            EXPIRED: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>', class: 'expired' },
-            DISCHARGE: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 8h-3V4h-2v4H8V4H6v4H3v2l2 8v3h14v-3l2-8V8zM12 17.5l-4-4h2.5V11h3v2.5H16l-4 4z"/></svg>', class: 'discharge' },
+            statOccupied.textContent = occupied;
+            statEmpty.textContent = totalPallets - occupied;
+            statExpired.textContent = expired;
         };
 
-        history.forEach(event => {
-            const icon = iconMap[event.type] || { svg: 'ℹ️', class: '' };
-            const entry = document.createElement('div');
-            entry.className = 'history-entry';
-            const details = event.details || {}; // Defensive check
-            const prodId = details['Product ID'] || 'N/A';
-            const prodName = details['Name'] || '';
-            let extraDetails = '';
-            if (event.type === 'DISCHARGE') {
-                extraDetails = `<span> | Cartons: ${event.cartons}, Unit: ${event.unit || 'N/A'}, Scrap: ${event.scrap} kg</span>`;
+
+        // --- HISTORY LOGIC ---
+        const logHistory = async (type, message, room, palletIds, details = {}, extra = {}) => {
+            const historyCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/history`);
+            const event = { 
+                type, 
+                message, 
+                room, 
+                palletIds: Array.isArray(palletIds) ? palletIds : [palletIds], 
+                details, 
+                timestamp: serverTimestamp(), 
+                ...extra 
+            };
+            const docRef = await addDoc(historyCollectionRef, event);
+            return docRef.id; // Return the document ID for potential deletion
+        };
+
+        const renderHistory = (historyData = history, historyDocsData = historyDocs) => {
+            if (!historyData.length) {
+                historyContainer.innerHTML = '<p>No history yet.</p>';
+                return;
             }
-            entry.innerHTML = `
-                <div class="history-icon ${icon.class}">${icon.svg}</div>
-                <div class="history-details">
-                    <p class="message">${event.message}<span> | ID: ${prodId} (${prodName})</span>${extraDetails}</p>
-                    <p class="timestamp">${formatDateTime(event.timestamp)}</p>
-                </div>
-            `;
-            entry.dataset.searchableContent = `${event.message} ${prodId} ${prodName}`.toLowerCase();
-            historyContainer.appendChild(entry);
-        });
-    };
-    
-    const clearHistory = () => {
-        showCustomConfirm('Clear All History', 'Are you sure you want to permanently delete all history? This action cannot be undone.', () => {
-            saveHistory([]);
-            renderHistory();
-        });
-    };
 
-    // --- POINT-IN-TIME HISTORY SNAPSHOT LOGIC ---
-    const generateRoomStateAtTime = (roomName, targetDate) => {
-        const targetTimestamp = new Date(targetDate).getTime();
-        const allHistory = getHistory(); 
-
-        const roomStateSnapshot = {};
-        for (let i = 1; i <= 13; i++) {
-            roomStateSnapshot[`L${i}`] = { occupied: false, details: null, dischargeDetails: null };
-            roomStateSnapshot[`R${i}`] = { occupied: false, details: null, dischargeDetails: null };
-        }
-
-        Object.keys(roomStateSnapshot).forEach(palletId => {
-            const lastEvent = allHistory.find(event => 
-                new Date(event.timestamp).getTime() <= targetTimestamp &&
-                event.palletIds.includes(palletId) &&
-                event.room === roomName
-            );
-            
-            if (lastEvent) {
-                if (['OCCUPY', 'UPDATE', 'RESET'].includes(lastEvent.type)) {
-                    roomStateSnapshot[palletId].occupied = true;
-                    roomStateSnapshot[palletId].details = lastEvent.details;
-                } else if (lastEvent.type === 'DISCHARGE') {
-                    roomStateSnapshot[palletId].occupied = false;
-                    roomStateSnapshot[palletId].dischargeDetails = {
-                        cartons: lastEvent.cartons,
-                        unit: lastEvent.unit,
-                        scrap: lastEvent.scrap,
-                        timestamp: lastEvent.timestamp,
-                        previousDetails: lastEvent.details
-                    };
-                }
-            }
-        });
-        return roomStateSnapshot;
-    };
-
-
-    const renderSnapshotView = (roomName, targetDate) => {
-        const roomState = generateRoomStateAtTime(roomName, targetDate);
-        snapshotModalTitle.textContent = `Snapshot of ${roomName} at ${formatDateTime(targetDate)}`;
-        snapshotTableBody.innerHTML = '';
-        lastSnapshotData = [];
-
-        const palletOrder = [];
-        for (let i = 1; i <= 13; i++) palletOrder.push(`L${i}`);
-        for (let i = 1; i <= 13; i++) palletOrder.push(`R${i}`);
-
-        palletOrder.forEach(palletId => {
-            const palletSnapshot = roomState[palletId];
-            const row = document.createElement('tr');
-            const rowData = {
-                pallet: palletId,
-                status: '',
-                productId: '',
-                name: '',
-                dischargeTime: '',
-                cartons: '',
-                unit: '',
-                scrap: ''
+            historyContainer.innerHTML = '';
+            const iconMap = {
+                OCCUPY: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-3v3h-2v-3H9v-2h3V8h2v3h3v2z"/></svg>', class: 'occupy' },
+                CLEAR: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>', class: 'clear' },
+                UPDATE: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>', class: 'update' },
+                RESET: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>', class: 'reset' },
+                EXPIRED: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>', class: 'expired' },
+                DISCHARGE: { svg: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 8h-3V4h-2v4H8V4H6v4H3v2l2 8v3h14v-3l2-8V8zM12 17.5l-4-4h2.5V11h3v2.5H16l-4 4z"/></svg>', class: 'discharge' },
             };
 
-            if (palletSnapshot.occupied) {
-                rowData.status = 'Occupied';
-                rowData.productId = palletSnapshot.details['Product ID'] || 'N/A';
-                rowData.name = palletSnapshot.details['Name'] || 'N/A';
-            } else if (palletSnapshot.dischargeDetails) {
-                rowData.status = 'Discharged';
-                rowData.productId = palletSnapshot.dischargeDetails.previousDetails['Product ID'] || 'N/A';
-                rowData.name = palletSnapshot.dischargeDetails.previousDetails['Name'] || 'N/A';
-                rowData.dischargeTime = formatDateTime(palletSnapshot.dischargeDetails.timestamp);
-                rowData.cartons = palletSnapshot.dischargeDetails.cartons;
-                rowData.unit = palletSnapshot.dischargeDetails.unit;
-                rowData.scrap = palletSnapshot.dischargeDetails.scrap;
-            } else {
-                rowData.status = 'Empty';
-            }
-            
-            lastSnapshotData.push(rowData);
+            historyData.forEach((event, index) => {
+                const icon = iconMap[event.type] || { svg: 'ℹ️', class: '' };
+                const entry = document.createElement('div');
+                entry.className = 'history-entry';
+                const details = event.details || {}; // Defensive check
+                const prodId = details['Product ID'] || 'N/A';
+                const prodName = details['Name'] || '';
+                let extraDetails = '';
+                if (event.type === 'DISCHARGE') {
+                    extraDetails = `<span> | Cartons: ${event.cartons}, Unit: ${event.unit || 'N/A'}, Scrap: ${event.scrap} kg</span>`;
+                }
+                const timestamp = event.timestamp?.toDate ? formatDateTime(event.timestamp.toDate()) : 'Pending...';
+                entry.innerHTML = `
+                    <div class="history-icon ${icon.class}">${icon.svg}</div>
+                    <div class="history-details">
+                        <p class="message">${event.message}<span> | ID: ${prodId} (${prodName})</span>${extraDetails}</p>
+                        <p class="timestamp">${timestamp}</p>
+                    </div>
+                    <div class="history-actions">
+                        <button class="delete-history-btn" data-index="${index}" title="Delete this history entry">
+                            <svg class="icon" viewBox="0 0 24 24" width="16" height="16"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                        </button>
+                    </div>
+                `;
+                entry.dataset.searchableContent = `${event.message} ${prodId} ${prodName}`.toLowerCase();
+                historyContainer.appendChild(entry);
+            });
 
-            row.innerHTML = `
-                <td>${rowData.pallet}</td>
-                <td class="status-${rowData.status.toLowerCase()}">${rowData.status}</td>
-                <td>${rowData.productId}</td>
-                <td>${rowData.name}</td>
-                <td>${rowData.dischargeTime}</td>
-                <td>${rowData.cartons}</td>
-                <td>${rowData.unit}</td>
-                <td>${rowData.scrap}</td>
-            `;
-            snapshotTableBody.appendChild(row);
-        });
-
-        exportSnapshotCsvBtn.style.display = lastSnapshotData.length > 0 ? 'inline-flex' : 'none';
-        openModal(snapshotModal);
-    };
-
-    // --- UI & FORM BUILDING ---
-    const buildForm = (container, palletData = {}, fields) => {
-        container.innerHTML = '';
-
-        const mainDetails = document.createElement('div');
-        const standardFields = fields.filter(f => !COOKING_FIELDS.includes(f));
+            // Add event listeners for delete buttons
+            document.querySelectorAll('.delete-history-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const index = parseInt(e.currentTarget.dataset.index);
+                    const historyDocId = historyDocsData[index];
+                    if (historyDocId) {
+                        showCustomConfirm('Delete History Entry', 'Are you sure you want to delete this history entry? This action cannot be undone.', async () => {
+                            try {
+                                const docRef = doc(db, `artifacts/${appId}/users/${userId}/history/${historyDocId}`);
+                                await deleteDoc(docRef);
+                                showToast('History entry deleted successfully.', 'success');
+                                // No need to manually remove from DOM, onSnapshot will trigger a re-render
+                            } catch (error) {
+                                console.error("Error deleting history entry:", error);
+                                showToast('Error deleting history entry.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+        };
         
-        standardFields.forEach(field => {
-            const fieldDiv = document.createElement('div');
-            fieldDiv.className = 'form-field';
-            const label = document.createElement('label');
-            label.textContent = field;
-            let inputElement;
-            const value = palletData[field] || '';
-            switch (field.toLowerCase()) {
-                case 'name':
-                    inputElement = document.createElement('select');
-                    PALLET_ITEMS.forEach(item => {
-                        const option = document.createElement('option');
-                        option.value = item.name;
-                        option.textContent = item.name;
-                        if (item.name === value) option.selected = true;
-                        inputElement.appendChild(option);
-                    });
-                    inputElement.addEventListener('change', () => {
-                        const selectedItem = PALLET_ITEMS.find(item => item.name === inputElement.value);
-                        const weightInput = container.querySelector('[data-field="Weight"]');
-                        if (weightInput) weightInput.value = selectedItem ? selectedItem.weight : 0;
-                    });
-                    break;
-                case 'description':
-                    inputElement = document.createElement('textarea');
-                    inputElement.rows = 3;
-                    inputElement.value = value;
-                    break;
-                case 'weight':
-                    inputElement = document.createElement('input');
-                    inputElement.type = 'number';
-                    inputElement.readOnly = true;
-                    inputElement.style.backgroundColor = '#e9ecef';
-                    inputElement.value = value;
-                    break;
-                default:
-                    inputElement = document.createElement('input');
-                    inputElement.type = 'text';
-                    inputElement.value = value;
-            }
-            inputElement.dataset.field = field;
-            fieldDiv.appendChild(label);
-            fieldDiv.appendChild(inputElement);
-            mainDetails.appendChild(fieldDiv);
-        });
-        
-        container.appendChild(mainDetails);
+        const clearHistory = async () => {
+            showCustomConfirm('Clear All History', 'Are you sure you want to permanently delete all history? This action cannot be undone.', async () => {
+                const historyCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/history`);
+                const snapshot = await getDocs(historyCollectionRef);
+                const batch = writeBatch(db);
+                snapshot.docs.forEach((doc) => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+                showToast('History cleared successfully.', 'success');
+            });
+        };
 
-        const cookingFields = fields.filter(f => COOKING_FIELDS.includes(f));
-        if (cookingFields.length > 0) {
-            const fieldset = document.createElement('fieldset');
-            const legend = document.createElement('legend');
-            legend.textContent = 'Cooking & Batch Details';
-            fieldset.appendChild(legend);
-            const formGrid = document.createElement('div');
-            formGrid.className = 'cooking-form-grid';
+        // --- POINT-IN-TIME HISTORY SNAPSHOT LOGIC ---
+        const generateRoomStateAtTime = (roomName, targetDate) => {
+            const targetTimestamp = new Date(targetDate).getTime();
+
+            const roomStateSnapshot = {};
+            for (let i = 1; i <= 13; i++) {
+                roomStateSnapshot[`L${i}`] = { occupied: false, details: null, dischargeDetails: null };
+                roomStateSnapshot[`R${i}`] = { occupied: false, details: null, dischargeDetails: null };
+            }
+
+            // Filter history for relevant events *before* the target time, and sort them
+            const relevantHistory = history
+                .filter(event => 
+                    event.timestamp?.toDate &&
+                    event.timestamp.toDate().getTime() <= targetTimestamp &&
+                    event.room === roomName
+                )
+                .sort((a, b) => a.timestamp.toDate().getTime() - b.timestamp.toDate().getTime());
             
-            cookingFields.forEach(field => {
+            // Replay events to build the state
+            relevantHistory.forEach(event => {
+                event.palletIds.forEach(palletId => {
+                    if (roomStateSnapshot[palletId]) {
+                        if (['OCCUPY', 'UPDATE', 'RESET'].includes(event.type)) {
+                            roomStateSnapshot[palletId].occupied = true;
+                            roomStateSnapshot[palletId].details = event.details;
+                            roomStateSnapshot[palletId].dischargeDetails = null; // Clear any previous discharge
+                        } else if (['DISCHARGE', 'CLEAR'].includes(event.type)) {
+                            roomStateSnapshot[palletId].occupied = false;
+                            roomStateSnapshot[palletId].dischargeDetails = {
+                                cartons: event.cartons,
+                                unit: event.unit,
+                                scrap: event.scrap,
+                                timestamp: event.timestamp.toDate(),
+                                previousDetails: event.details
+                            };
+                        }
+                    }
+                });
+            });
+            return roomStateSnapshot;
+        };
+
+        const renderSnapshotView = (roomName, targetDate) => {
+            const roomState = generateRoomStateAtTime(roomName, targetDate);
+            snapshotModalTitle.textContent = `Snapshot of ${roomName} at ${formatDateTime(targetDate)}`;
+            snapshotTableBody.innerHTML = '';
+            lastSnapshotData = [];
+
+            const palletOrder = [];
+            for (let i = 1; i <= 13; i++) palletOrder.push(`L${i}`);
+            for (let i = 1; i <= 13; i++) palletOrder.push(`R${i}`);
+
+            palletOrder.forEach(palletId => {
+                const palletSnapshot = roomState[palletId];
+                const row = document.createElement('tr');
+                const rowData = {
+                    pallet: palletId,
+                    status: '',
+                    productId: '',
+                    name: '',
+                    dischargeTime: '',
+                    cartons: '',
+                    unit: '',
+                    scrap: ''
+                };
+
+                if (palletSnapshot.occupied) {
+                    rowData.status = 'Occupied';
+                    rowData.productId = palletSnapshot.details['Product ID'] || 'N/A';
+                    rowData.name = palletSnapshot.details['Name'] || 'N/A';
+                } else if (palletSnapshot.dischargeDetails) {
+                    rowData.status = 'Discharged';
+                    rowData.productId = palletSnapshot.dischargeDetails.previousDetails['Product ID'] || 'N/A';
+                    rowData.name = palletSnapshot.dischargeDetails.previousDetails['Name'] || 'N/A';
+                    rowData.dischargeTime = formatDateTime(palletSnapshot.dischargeDetails.timestamp);
+                    rowData.cartons = palletSnapshot.dischargeDetails.cartons;
+                    rowData.unit = palletSnapshot.dischargeDetails.unit;
+                    rowData.scrap = palletSnapshot.dischargeDetails.scrap;
+                } else {
+                    rowData.status = 'Empty';
+                }
+                
+                lastSnapshotData.push(rowData);
+
+                row.innerHTML = `
+                    <td>${rowData.pallet}</td>
+                    <td class="status-${rowData.status.toLowerCase()}">${rowData.status}</td>
+                    <td>${rowData.productId}</td>
+                    <td>${rowData.name}</td>
+                    <td>${rowData.dischargeTime}</td>
+                    <td>${rowData.cartons}</td>
+                    <td>${rowData.unit}</td>
+                    <td>${rowData.scrap}</td>
+                `;
+                snapshotTableBody.appendChild(row);
+            });
+
+            exportSnapshotCsvBtn.style.display = lastSnapshotData.length > 0 ? 'inline-flex' : 'none';
+            openModal(snapshotModal);
+        };
+
+        // --- UI & FORM BUILDING ---
+        const buildForm = (container, palletData = {}, fields) => {
+            container.innerHTML = '';
+
+            const mainDetails = document.createElement('div');
+            const standardFields = fields.filter(f => !COOKING_FIELDS.includes(f));
+            
+            standardFields.forEach(field => {
                 const fieldDiv = document.createElement('div');
                 fieldDiv.className = 'form-field';
                 const label = document.createElement('label');
                 label.textContent = field;
-                let inputElement = document.createElement('input');
+                let inputElement;
                 const value = palletData[field] || '';
-
-                if(field === 'Cooking Date') {
-                    inputElement.type = 'date';
-                    inputElement.value = value || new Date().toISOString().split('T')[0];
-                } else if (field === 'Total Cooking Weight') {
-                    inputElement.type = 'number';
-                    inputElement.step = '0.1';
-                    inputElement.placeholder = 'e.g., 1500.5';
-                    inputElement.value = value;
-                } else {
-                    inputElement.type = 'text';
-                    inputElement.value = value;
+                switch (field.toLowerCase()) {
+                    case 'name':
+                        inputElement = document.createElement('select');
+                        PALLET_ITEMS.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.name;
+                            option.textContent = item.name;
+                            if (item.name === value) option.selected = true;
+                            inputElement.appendChild(option);
+                        });
+                        inputElement.addEventListener('change', () => {
+                            const selectedItem = PALLET_ITEMS.find(item => item.name === inputElement.value);
+                            const weightInput = container.querySelector('[data-field="Weight"]');
+                            if (weightInput) weightInput.value = selectedItem ? selectedItem.weight : 0;
+                        });
+                        break;
+                    case 'description':
+                        inputElement = document.createElement('textarea');
+                        inputElement.rows = 3;
+                        inputElement.value = value;
+                        break;
+                    case 'weight':
+                        inputElement = document.createElement('input');
+                        inputElement.type = 'number';
+                        inputElement.readOnly = true;
+                        inputElement.style.backgroundColor = '#e9ecef';
+                        inputElement.value = value;
+                        break;
+                    default:
+                        inputElement = document.createElement('input');
+                        inputElement.type = 'text';
+                        inputElement.value = value;
                 }
-
                 inputElement.dataset.field = field;
                 fieldDiv.appendChild(label);
                 fieldDiv.appendChild(inputElement);
-                formGrid.appendChild(fieldDiv)
+                mainDetails.appendChild(fieldDiv);
             });
-            fieldset.appendChild(formGrid);
-            container.appendChild(fieldset);
-        }
-        
-        const startTimeField = document.createElement('div');
-        startTimeField.className = 'form-field';
-        startTimeField.innerHTML = `
-            <label for="modal-start-time">Start Date & Time</label>
-            <input type="datetime-local" id="modal-start-time" data-field="startTime">
-        `;
-        container.prepend(startTimeField);
-        getEl('modal-start-time').value = getCurrentDateTimeForInput();
+            
+            container.appendChild(mainDetails);
 
-        const nameSelect = container.querySelector('[data-field="Name"]');
-        if (nameSelect) nameSelect.dispatchEvent(new Event('change'));
-    };
+            const cookingFields = fields.filter(f => COOKING_FIELDS.includes(f));
+            if (cookingFields.length > 0) {
+                const fieldset = document.createElement('fieldset');
+                const legend = document.createElement('legend');
+                legend.textContent = 'Cooking & Batch Details';
+                fieldset.appendChild(legend);
+                const formGrid = document.createElement('div');
+                formGrid.className = 'cooking-form-grid';
+                
+                cookingFields.forEach(field => {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'form-field';
+                    const label = document.createElement('label');
+                    label.textContent = field;
+                    let inputElement = document.createElement('input');
+                    const value = palletData[field] || '';
 
-    const renderCurrentRoom = () => {
-        const holdHours = getHoldDurationHours();
-        roomTitle.textContent = `${currentRoom} (${holdHours} Hour Hold)`;
-        const roomState = getMultiRoomState()[currentRoom];
-        for (const palletId in roomState) {
-            const palletDiv = document.getElementById(palletId);
-            const palletData = roomState[palletId];
-            const totalDuration = palletData.durationMs || DURATION_MS;
-            palletDiv.className = 'pallet';
-            if (palletData.occupied) {
-                const palletName = palletData.details ? (palletData.details['Name'] || palletId) : palletId;
-                const elapsedTime = new Date() - new Date(palletData.startTime);
-                if (elapsedTime >= totalDuration) {
-                    palletDiv.classList.add('expired');
-                    palletDiv.dataset.status = 'expired';
-                    palletDiv.innerHTML = `<span class="pallet-label">${palletName}</span><span class="pallet-timer">EXPIRED</span>`;
-                } else {
-                    palletDiv.classList.add('occupied');
-                    palletDiv.dataset.status = 'occupied';
-                    const remainingMs = totalDuration - elapsedTime;
-                    palletDiv.innerHTML = `<span class="pallet-label">${palletName}</span><span class="pallet-timer">${formatTime(remainingMs)}</span>`;
-                }
-            } else {
-                if (palletData.lastDischargeEvent) {
-                    palletDiv.classList.add('recently-discharged');
-                    palletDiv.dataset.status = 'recently-discharged';
-                    const prevName = palletData.lastDischargeEvent.details['Name'] || palletId;
-                    palletDiv.innerHTML = `<span>${prevName} (Empty)</span>`;
+                    if(field === 'Cooking Date') {
+                        inputElement.type = 'date';
+                        inputElement.value = value || new Date().toISOString().split('T')[0];
+                    } else if (field === 'Total Cooking Weight') {
+                        inputElement.type = 'number';
+                        inputElement.step = '0.1';
+                        inputElement.placeholder = 'e.g., 1500.5';
+                        inputElement.value = value;
+                    } else {
+                        inputElement.type = 'text';
+                        inputElement.value = value;
+                    }
 
-                } else {
-                    palletDiv.classList.add('empty');
-                    palletDiv.dataset.status = 'empty';
-                    palletDiv.textContent = palletId;
-                }
+                    inputElement.dataset.field = field;
+                    fieldDiv.appendChild(label);
+                    fieldDiv.appendChild(inputElement);
+                    formGrid.appendChild(fieldDiv)
+                });
+                fieldset.appendChild(formGrid);
+                container.appendChild(fieldset);
             }
             
-            // Apply status filter
-            applyStatusFilter(palletDiv);
-        }
-        renderSelections();
-    };
+            const startTimeField = document.createElement('div');
+            startTimeField.className = 'form-field';
+            startTimeField.innerHTML = `
+                <label for="modal-start-time">Start Date & Time</label>
+                <input type="datetime-local" id="modal-start-time" data-field="startTime">
+            `;
+            container.prepend(startTimeField);
+            getEl('modal-start-time').value = (palletData.startTime) ? new Date(palletData.startTime).toISOString().slice(0, 16) : getCurrentDateTimeForInput();
 
-    const renderRoomTabs = () => {
-        roomTabsContainer.innerHTML = '';
-        ROOM_NAMES.forEach(name => {
-            const tab = document.createElement('div');
-            tab.className = 'room-tab';
-            tab.textContent = name;
-            tab.dataset.roomName = name;
-            if (name === currentRoom) tab.classList.add('active');
-            roomTabsContainer.appendChild(tab);
-        });
-        roomSelect.innerHTML = '';
-        ROOM_NAMES.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            if (name === currentRoom) option.selected = true;
-            roomSelect.appendChild(option);
-        });
-        reportRoomSelect.innerHTML = '<option value="all">All Rooms</option>';
-        ROOM_NAMES.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            reportRoomSelect.appendChild(option);
-        })
-    };
-    
-    // --- STATUS FILTER FUNCTIONS ---
-    const applyStatusFilter = (palletDiv) => {
-        if (currentStatusFilter === 'all' || palletDiv.dataset.status === currentStatusFilter) {
-            palletDiv.classList.remove('filtered-out');
-        } else {
-            palletDiv.classList.add('filtered-out');
-        }
-    };
-
-    const handleStatusFilter = (status) => {
-        currentStatusFilter = status;
-        
-        // Update UI for filter buttons
-        statusFilterBtns.forEach(btn => {
-            if (btn.dataset.status === status) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
+            // Add Product ID validation
+            const productIdInput = container.querySelector('[data-field="Product ID"]');
+            if (productIdInput) {
+                const idWarning = document.createElement('div');
+                idWarning.className = 'id-warning';
+                idWarning.innerHTML = 'This Product ID is already in use. <span class="id-suggestion-text">Use suggested ID instead</span>';
+                
+                const idSuggestion = document.createElement('div');
+                idSuggestion.className = 'id-suggestion';
+                
+                productIdInput.parentNode.appendChild(idWarning);
+                productIdInput.parentNode.appendChild(idSuggestion);
+                
+                productIdInput.addEventListener('blur', () => {
+                    validateProductId(productIdInput.value, idWarning, idSuggestion);
+                });
+                
+                // Check initial value
+                if (productIdInput.value) {
+                    validateProductId(productIdInput.value, idWarning, idSuggestion);
+                }
             }
-        });
+
+            const nameSelect = container.querySelector('[data-field="Name"]');
+            if (nameSelect) nameSelect.dispatchEvent(new Event('change'));
+        };
+
+        // NEW: Validate Product ID uniqueness and suggest next ID
+        const validateProductId = (productId, warningElement, suggestionElement) => {
+            if (!productId) {
+                warningElement.style.display = 'none';
+                suggestionElement.textContent = '';
+                return;
+            }
+            
+            // Check if this product ID is already in use in any room
+            let isDuplicate = false;
+            for (const roomName in multiRoomState) {
+                for (const palletId in multiRoomState[roomName]) {
+                    const pallet = multiRoomState[roomName][palletId];
+                    if (pallet.occupied && pallet.details && pallet.details['Product ID'] === productId) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+                if (isDuplicate) break;
+            }
+            
+            if (isDuplicate) {
+                warningElement.style.display = 'block';
+                
+                // Generate a suggested ID
+                let suggestedId = '';
+                if (/^\d+$/.test(productId)) {
+                    // If it's a number, increment it
+                    suggestedId = (parseInt(productId) + 1).toString();
+                } else if (/^[A-Za-z]+(\d+)$/.test(productId)) {
+                    // If it's text followed by numbers (like "BATCH001")
+                    const textPart = productId.match(/^[A-Za-z]+/)[0];
+                    const numPart = productId.match(/\d+$/)[0];
+                    suggestedId = textPart + (parseInt(numPart) + 1).toString().padStart(numPart.length, '0');
+                } else {
+                    // Just add a number at the end
+                    suggestedId = productId + '1';
+                }
+                
+                suggestionElement.innerHTML = `Suggested ID: <span class="id-suggestion-text">${suggestedId}</span>`;
+                
+                // Add click event to use the suggested ID
+                suggestionElement.querySelector('.id-suggestion-text').addEventListener('click', () => {
+                    const productIdInput = warningElement.parentNode.querySelector('[data-field="Product ID"]');
+                    productIdInput.value = suggestedId;
+                    warningElement.style.display = 'none';
+                    suggestionElement.textContent = '';
+                });
+            } else {
+                warningElement.style.display = 'none';
+                suggestionElement.textContent = '';
+            }
+        };
+
+        const renderCurrentRoom = () => {
+            const holdHours = getHoldDurationHours();
+            roomTitle.textContent = `${currentRoom} (${holdHours} Hour Hold)`;
+            if (!multiRoomState || !multiRoomState[currentRoom]) return;
+            const roomState = multiRoomState[currentRoom];
+
+            for (const palletId in roomState) {
+                const palletDiv = document.getElementById(palletId);
+                if (!palletDiv) continue;
+                const palletData = roomState[palletId];
+                const totalDuration = palletData.durationMs || DURATION_MS;
+                palletDiv.className = 'pallet';
+                if (palletData.occupied) {
+                    const palletName = palletData.details ? (palletData.details['Name'] || palletId) : palletId;
+                    const elapsedTime = new Date() - new Date(palletData.startTime);
+                    if (elapsedTime >= totalDuration) {
+                        palletDiv.classList.add('expired');
+                        palletDiv.dataset.status = 'expired';
+                        palletDiv.innerHTML = `<span class="pallet-label">${palletName}</span><span class="pallet-timer">EXPIRED</span>`;
+                    } else {
+                        palletDiv.classList.add('occupied');
+                        palletDiv.dataset.status = 'occupied';
+                        const remainingMs = totalDuration - elapsedTime;
+                        palletDiv.innerHTML = `<span class="pallet-label">${palletName}</span><span class="pallet-timer">${formatTime(remainingMs)}</span>`;
+                    }
+                } else {
+                    if (palletData.lastDischargeEvent) {
+                        palletDiv.classList.add('recently-discharged');
+                        palletDiv.dataset.status = 'recently-discharged';
+                        const prevName = palletData.lastDischargeEvent.details['Name'] || palletId;
+                        palletDiv.innerHTML = `<span>${prevName} (Empty)</span>`;
+
+                    } else {
+                        palletDiv.classList.add('empty');
+                        palletDiv.dataset.status = 'empty';
+                        palletDiv.textContent = palletId;
+                    }
+                }
+                
+                applyStatusFilter(palletDiv);
+            }
+            renderSelections();
+        };
+
+        const renderRoomTabs = () => {
+            roomTabsContainer.innerHTML = '';
+            ROOM_NAMES.forEach(name => {
+                const tab = document.createElement('div');
+                tab.className = 'room-tab';
+                tab.textContent = name;
+                tab.dataset.roomName = name;
+                if (name === currentRoom) tab.classList.add('active');
+                roomTabsContainer.appendChild(tab);
+            });
+            roomSelect.innerHTML = '';
+            ROOM_NAMES.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                if (name === currentRoom) option.selected = true;
+                roomSelect.appendChild(option);
+            });
+            reportRoomSelect.innerHTML = '<option value="all">All Rooms</option>';
+            ROOM_NAMES.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                reportRoomSelect.appendChild(option);
+            })
+        };
         
-        // Apply filter to all pallets
-        document.querySelectorAll('.pallet').forEach(pallet => {
-            applyStatusFilter(pallet);
-        });
+        // --- STATUS FILTER FUNCTIONS ---
+        const applyStatusFilter = (palletDiv) => {
+            if (currentStatusFilter === 'all' || palletDiv.dataset.status === currentStatusFilter) {
+                palletDiv.classList.remove('filtered-out');
+            } else {
+                palletDiv.classList.add('filtered-out');
+            }
+        };
+
+        const handleStatusFilter = (status) => {
+            currentStatusFilter = status;
+            
+            statusFilterBtns.forEach(btn => {
+                if (btn.dataset.status === status) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            document.querySelectorAll('.pallet').forEach(pallet => {
+                applyStatusFilter(pallet);
+            });
+            
+            if (status === 'all') {
+                filterBanner.style.display = 'none';
+            } else {
+                filterBanner.style.display = 'flex';
+                filterText.textContent = `Showing: ${status.charAt(0).toUpperCase() + status.slice(1)} Pallets`;
+            }
+        };
         
-        // Update filter banner
-        if (status === 'all') {
-            filterBanner.style.display = 'none';
-        } else {
-            filterBanner.style.display = 'flex';
-            filterText.textContent = `Showing: ${status.charAt(0).toUpperCase() + status.slice(1)} Pallets`;
-        }
-    };
-    
-    // --- REPORTING & SEARCH LOGIC ---
-    const performLifecycleSearch = () => {
-        const searchDate = searchDateInput.value;
-        if (!searchDate) {
-            showCustomAlert('Error', 'Please select a date to search.');
-            return;
-        }
+        // --- REPORTING & SEARCH LOGIC ---
+        const performLifecycleSearch = () => {
+            const searchDate = searchDateInput.value;
+            if (!searchDate) {
+                showCustomAlert('Error', 'Please select a date to search.');
+                return;
+            }
 
-        const allHistory = getHistory(); // This is reverse-chronological (newest first)
-        const searchStart = new Date(searchDate);
-        searchStart.setHours(0, 0, 0, 0);
-        const searchEnd = new Date(searchDate);
-        searchEnd.setHours(23, 59, 59, 999);
+            const searchStart = new Date(searchDate);
+            searchStart.setHours(0, 0, 0, 0);
+            const searchEnd = new Date(searchDate);
+            searchEnd.setHours(23, 59, 59, 999);
 
-        // Find all occupy/reset events on the selected date
-        const startEvents = allHistory.filter(event => {
-            if (!['OCCUPY', 'RESET'].includes(event.type)) return false;
-            const eventDate = new Date(event.timestamp);
-            return eventDate >= searchStart && eventDate <= searchEnd;
-        }).reverse(); // Process oldest first to find correct discharge event
+            const startEvents = history.filter(event => {
+                if (!['OCCUPY', 'RESET'].includes(event.type) || !event.timestamp?.toDate) return false;
+                const eventDate = event.timestamp.toDate();
+                return eventDate >= searchStart && eventDate <= searchEnd;
+            }).sort((a,b) => a.timestamp.toDate() - b.timestamp.toDate());
 
-        if (startEvents.length === 0) {
-            searchResultsContainer.innerHTML = `<p>No pallets started on ${searchStart.toLocaleDateString()}.</p>`;
-            exportSearchCsvBtn.style.display = 'none';
-            return;
-        }
+            if (startEvents.length === 0) {
+                searchResultsContainer.innerHTML = `<p>No pallets started on ${searchStart.toLocaleDateString()}.</p>`;
+                exportSearchCsvBtn.style.display = 'none';
+                return;
+            }
+            
+            const results = {};
+            lastLifecycleSearchResults = [];
+
+            startEvents.forEach(startEvent => {
+                const dischargeEvent = history.find(event => 
+                    (event.type === 'DISCHARGE' || event.type === 'CLEAR') &&
+                    event.palletIds.some(id => startEvent.palletIds.includes(id)) &&
+                    event.timestamp?.toDate() > startEvent.timestamp.toDate()
+                );
+                
+                const itemName = (startEvent.details && startEvent.details.Name) ? startEvent.details.Name : 'Unknown';
+                if (!results[itemName]) {
+                    results[itemName] = {
+                        count: 0,
+                        totalCartons: 0,
+                        totalScrap: 0,
+                        lifecycles: []
+                    };
+                }
+                results[itemName].count++;
+                results[itemName].totalCartons += dischargeEvent ? (dischargeEvent.cartons || 0) : 0;
+                results[itemName].totalScrap += dischargeEvent ? (dischargeEvent.scrap || 0) : 0;
+                
+                const lifecycleData = {
+                    start: startEvent,
+                    end: dischargeEvent
+                };
+                results[itemName].lifecycles.push(lifecycleData);
+                lastLifecycleSearchResults.push(lifecycleData);
+            });
+
+            let tableHtml = '';
+            for (const itemName in results) {
+                const itemData = results[itemName];
+                tableHtml += `
+                    <h3>${itemName} (Total Pallets: ${itemData.count}, Total Cartons: ${itemData.totalCartons}, Total Scrap: ${itemData.totalScrap.toFixed(2)} kg)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pallet</th>
+                                <th>Room</th>
+                                <th>Start Time</th>
+                                <th>Discharge Time</th>
+                                <th>Cartons</th>
+                                <th>Unit</th>
+                                <th>Scrap (kg)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                itemData.lifecycles.forEach(cycle => {
+                    tableHtml += `
+                            <tr>
+                                <td>${cycle.start.palletIds.join(', ')}</td>
+                                <td>${cycle.start.room}</td>
+                                <td>${formatDateTime(cycle.start.timestamp.toDate())}</td>
+                                <td>${cycle.end ? formatDateTime(cycle.end.timestamp.toDate()) : 'Still Occupied'}</td>
+                                <td>${cycle.end ? (cycle.end.cartons || 0) : 'N/A'}</td>
+                                <td>${cycle.end ? (cycle.end.unit || 'N/A') : 'N/A'}</td>
+                                <td>${cycle.end ? (cycle.end.scrap || 0) : 'N/A'}</td>
+                            </tr>
+                    `;
+                });
+                tableHtml += `</tbody></table>`;
+            }
+
+            searchResultsContainer.innerHTML = tableHtml || `<p>No results found for ${searchStart.toLocaleDateString()}.</p>`;
+            exportSearchCsvBtn.style.display = lastLifecycleSearchResults.length > 0 ? 'inline-flex' : 'none';
+        };
         
-        const results = {};
-        lastLifecycleSearchResults = [];
-
-        startEvents.forEach(startEvent => {
-            const dischargeEvent = allHistory.find(event => 
-                (event.type === 'DISCHARGE' || event.type === 'CLEAR') &&
-                event.palletIds.some(id => startEvent.palletIds.includes(id)) &&
-                new Date(event.timestamp) > new Date(startEvent.timestamp)
+        // NEW: Search by Product ID
+        const searchByProductId = () => {
+            const productId = productIdSearchInput.value.trim();
+            if (!productId) {
+                showCustomAlert('Error', 'Please enter a Product ID to search for.');
+                return;
+            }
+            
+            const results = history.filter(event => 
+                event.details && event.details['Product ID'] === productId
             );
             
-            const itemName = (startEvent.details && startEvent.details.Name) ? startEvent.details.Name : 'Unknown';
-            if (!results[itemName]) {
-                results[itemName] = {
-                    count: 0,
-                    totalCartons: 0,
-                    totalScrap: 0,
-                    lifecycles: []
-                };
+            if (results.length === 0) {
+                historyContainer.innerHTML = `<p>No history entries found for Product ID: ${productId}</p>`;
+                return;
             }
-            results[itemName].count++;
-            results[itemName].totalCartons += dischargeEvent ? (dischargeEvent.cartons || 0) : 0;
-            results[itemName].totalScrap += dischargeEvent ? (dischargeEvent.scrap || 0) : 0;
             
-            const lifecycleData = {
-                start: startEvent,
-                end: dischargeEvent
-            };
-            results[itemName].lifecycles.push(lifecycleData);
-            lastLifecycleSearchResults.push(lifecycleData);
-        });
+            // Render the filtered results
+            renderHistory(results, historyDocs.filter((docId, index) => {
+                const event = history[index];
+                return event.details && event.details['Product ID'] === productId;
+            }));
+        };
+        
+        const exportLifecycleResultsToCSV = () => {
+            const headers = ["Pallet", "Room", "Item Name", "Start Time", "Discharge Time", "Cartons", "Unit", "Scrap (kg)"];
+            const rows = lastLifecycleSearchResults.map(cycle => {
+                return [
+                    cycle.start.palletIds.join(', '),
+                    cycle.start.room,
+                    cycle.start.details?.Name || 'Unknown',
+                    formatDateTime(cycle.start.timestamp.toDate()),
+                    cycle.end ? formatDateTime(cycle.end.timestamp.toDate()) : 'Still Occupied',
+                    cycle.end ? (cycle.end.cartons || 0) : 'N/A',
+                    cycle.end ? (cycle.end.unit || 'N/A') : 'N/A',
+                    cycle.end ? (cycle.end.scrap || 0) : 'N/A'
+                ];
+            });
+            
+            const timestamp = searchDateInput.value || new Date().toISOString().slice(0, 10);
+            exportToCSV(headers, rows, `lifecycle_report_${timestamp}.csv`);
+        };
 
-        let tableHtml = '';
-        for (const itemName in results) {
-            const itemData = results[itemName];
-            tableHtml += `
-                <h3>${itemName} (Total Pallets: ${itemData.count}, Total Cartons: ${itemData.totalCartons}, Total Scrap: ${itemData.totalScrap.toFixed(2)} kg)</h3>
+        const generateReportData = (roomFilter = 'all') => {
+            const reportData = {};
+            const roomsToScan = (roomFilter !== 'all') ? { [roomFilter]: multiRoomState[roomFilter] } : multiRoomState;
+
+            for (const roomName in roomsToScan) {
+                if (!multiRoomState[roomName]) continue;
+                for (const palletId in multiRoomState[roomName]) {
+                    const pallet = multiRoomState[roomName][palletId];
+                    if (pallet.occupied && pallet.details) {
+                        const itemName = pallet.details['Name'];
+                        if (!itemName || itemName === "Select an Item") continue;
+
+                        if (!reportData[itemName]) {
+                            reportData[itemName] = {};
+                        }
+                        
+                        if (!reportData[itemName][roomName]) {
+                            reportData[itemName][roomName] = { count: 0, totalRemainingMs: 0 };
+                        }
+
+                        reportData[itemName][roomName].count++;
+                        const totalDuration = pallet.durationMs || DURATION_MS;
+                        const elapsedTime = new Date() - new Date(pallet.startTime);
+                        let remainingMs = totalDuration - elapsedTime;
+                        if (remainingMs < 0) remainingMs = 0;
+                        
+                        reportData[itemName][roomName].totalRemainingMs += remainingMs;
+                    }
+                }
+            }
+            return reportData;
+        };
+
+        const renderReport = () => {
+            const selectedRoom = reportRoomSelect.value;
+            const reportData = generateReportData(selectedRoom);
+            if (Object.keys(reportData).length === 0) {
+                reportContainer.innerHTML = "<p>No occupied pallets with items to report in the selected room(s).</p>";
+                exportCsvBtn.style.display = 'none';
+                return;
+            }
+
+            let tableHtml = `
                 <table>
                     <thead>
                         <tr>
-                            <th>Pallet</th>
+                            <th>Item Name</th>
                             <th>Room</th>
-                            <th>Start Time</th>
-                            <th>Discharge Time</th>
-                            <th>Cartons</th>
-                            <th>Unit</th>
-                            <th>Scrap (kg)</th>
+                            <th>Total Pallets</th>
+                            <th>Avg. Remaining Time</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
-            itemData.lifecycles.forEach(cycle => {
-                tableHtml += `
-                    <tr>
-                        <td>${cycle.start.palletIds.join(', ')}</td>
-                        <td>${cycle.start.room}</td>
-                        <td>${formatDateTime(cycle.start.timestamp)}</td>
-                        <td>${cycle.end ? formatDateTime(cycle.end.timestamp) : 'Still Occupied'}</td>
-                        <td>${cycle.end ? (cycle.end.cartons || 0) : 'N/A'}</td>
-                        <td>${cycle.end ? (cycle.end.unit || 'N/A') : 'N/A'}</td>
-                        <td>${cycle.end ? (cycle.end.scrap || 0) : 'N/A'}</td>
-                    </tr>
-                `;
-            });
+
+            for (const itemName in reportData) {
+                for (const roomName in reportData[itemName]) {
+                    const item = reportData[itemName][roomName];
+                    const avgRemainingMs = item.totalRemainingMs / item.count;
+                    tableHtml += `
+                        <tr>
+                            <td>${itemName}</td>
+                            <td>${roomName}</td>
+                            <td>${item.count}</td>
+                            <td>${formatTime(avgRemainingMs)}</td>
+                        </tr>
+                    `;
+                }
+            }
+
             tableHtml += `</tbody></table>`;
-        }
-
-        searchResultsContainer.innerHTML = tableHtml || `<p>No results found for ${searchStart.toLocaleDateString()}.</p>`;
-        exportSearchCsvBtn.style.display = lastLifecycleSearchResults.length > 0 ? 'inline-flex' : 'none';
-    };
-    
-    const exportLifecycleResultsToCSV = () => {
-        const headers = ["Pallet", "Room", "Item Name", "Start Time", "Discharge Time", "Cartons", "Unit", "Scrap (kg)"];
-        const rows = lastLifecycleSearchResults.map(cycle => {
-            return [
-                cycle.start.palletIds.join(', '),
-                cycle.start.room,
-                cycle.start.details?.Name || 'Unknown',
-                formatDateTime(cycle.start.timestamp),
-                cycle.end ? formatDateTime(cycle.end.timestamp) : 'Still Occupied',
-                cycle.end ? (cycle.end.cartons || 0) : 'N/A',
-                cycle.end ? (cycle.end.unit || 'N/A') : 'N/A',
-                cycle.end ? (cycle.end.scrap || 0) : 'N/A'
-            ];
-        });
+            reportContainer.innerHTML = tableHtml;
+            exportCsvBtn.style.display = 'inline-flex';
+        };
         
-        const timestamp = searchDateInput.value || new Date().toISOString().slice(0, 10);
-        exportToCSV(headers, rows, `lifecycle_report_${timestamp}.csv`);
-    };
+        const exportToCSV = (headers, rows, filename) => {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += headers.join(",") + "\r\n";
 
-    const generateReportData = (roomFilter = 'all') => {
-        const state = getMultiRoomState();
-        const reportData = {};
-        const roomsToScan = (roomFilter !== 'all') ? { [roomFilter]: state[roomFilter] } : state;
+            rows.forEach(rowArray => {
+                let row = rowArray.map(item => `"${String(item).replace(/"/g, '""')}"`).join(",");
+                csvContent += row + "\r\n";
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+        
+         // --- SCRAP CALCULATION ---
+        const calculateAndShowScrap = () => {
+            const dischargeEvents = history.filter(e => e.type === 'DISCHARGE' && e.scrap > 0);
 
-        for (const roomName in roomsToScan) {
-            for (const palletId in state[roomName]) {
-                const pallet = state[roomName][palletId];
-                if (pallet.occupied && pallet.details) {
-                    const itemName = pallet.details['Name'];
-                    if (!itemName || itemName === "Select an Item") continue;
+            if (dischargeEvents.length === 0) {
+                showCustomAlert('No Scrap Data', 'There are no recorded discharge events with scrap to analyze.');
+                return;
+            }
+            
+            const scrapByStartDate = {};
 
-                    if (!reportData[itemName]) {
-                        reportData[itemName] = { count: 0, totalRemainingMs: 0 };
-                    }
+            dischargeEvents.forEach(event => {
+                const startTime = event.details.startTime;
+                if (!startTime) return; 
 
-                    reportData[itemName].count++;
-                    const totalDuration = pallet.durationMs || DURATION_MS;
-                    const elapsedTime = new Date() - new Date(pallet.startTime);
-                    let remainingMs = totalDuration - elapsedTime;
-                    if (remainingMs < 0) remainingMs = 0;
+                const startDate = new Date(startTime).toLocaleDateString('en-CA'); 
+
+                if (!scrapByStartDate[startDate]) {
+                    scrapByStartDate[startDate] = {
+                        totalScrap: 0,
+                        pallets: []
+                    };
+                }
+
+                scrapByStartDate[startDate].totalScrap += event.scrap;
+                scrapByStartDate[startDate].pallets.push({
+                    palletId: event.palletIds.join(', '),
+                    room: event.room,
+                    itemName: event.details.Name || 'Unknown',
+                    scrap: event.scrap
+                });
+            });
+
+            renderScrapSummary(scrapByStartDate);
+        };
+
+        const renderScrapSummary = (scrapData) => {
+            scrapSummaryContainer.innerHTML = '';
+            const sortedDates = Object.keys(scrapData).sort((a, b) => new Date(b) - new Date(a));
+
+            if (sortedDates.length === 0) {
+                 scrapSummaryContainer.innerHTML = '<p>No discharge events with scrap have been recorded yet.</p>';
+            } else {
+                 sortedDates.forEach(date => {
+                    const data = scrapData[date];
+                    const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'scrap-group';
                     
-                    reportData[itemName].totalRemainingMs += remainingMs;
-                }
-            }
-        }
-        return reportData;
-    };
+                    let palletListHtml = '<ul>';
+                    data.pallets.forEach(p => {
+                        palletListHtml += `<li>${p.palletId} (${p.room} - ${p.itemName}): <strong>${p.scrap.toFixed(2)} kg</strong></li>`;
+                    });
+                    palletListHtml += '</ul>';
 
-    const renderReport = () => {
-        const selectedRoom = reportRoomSelect.value;
-        const reportData = generateReportData(selectedRoom);
-        if (Object.keys(reportData).length === 0) {
-            reportContainer.innerHTML = "<p>No occupied pallets with items to report in the selected room(s).</p>";
-            exportCsvBtn.style.display = 'none';
-            return;
-        }
-
-        let tableHtml = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Item Name</th>
-                        <th>Total Pallets</th>
-                        <th>Avg. Remaining Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-        for (const itemName in reportData) {
-            const item = reportData[itemName];
-            const avgRemainingMs = item.totalRemainingMs / item.count;
-            tableHtml += `
-                <tr>
-                    <td>${itemName}</td>
-                    <td>${item.count}</td>
-                    <td>${formatTime(avgRemainingMs)}</td>
-                </tr>
-            `;
-        }
-
-        tableHtml += `</tbody></table>`;
-        reportContainer.innerHTML = tableHtml;
-        exportCsvBtn.style.display = 'inline-flex';
-    };
-    
-    const exportToCSV = (headers, rows, filename) => {
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += headers.join(",") + "\r\n";
-
-        rows.forEach(rowArray => {
-            let row = rowArray.map(item => `"${String(item).replace(/"/g, '""')}"`).join(",");
-            csvContent += row + "\r\n";
-        });
-        
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", filename);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-    
-     // --- SCRAP CALCULATION ---
-    const calculateAndShowScrap = () => {
-        const history = getHistory();
-        const dischargeEvents = history.filter(e => e.type === 'DISCHARGE' && e.scrap > 0);
-
-        if (dischargeEvents.length === 0) {
-            showCustomAlert('No Scrap Data', 'There are no recorded discharge events with scrap to analyze.');
-            return;
-        }
-        
-        const scrapByStartDate = {};
-
-        dischargeEvents.forEach(event => {
-            // The original start time is stored in the event details upon discharge
-            const startTime = event.details.startTime;
-            if (!startTime) return; // Skip if for some reason start time isn't there
-
-            const startDate = new Date(startTime).toLocaleDateString('en-CA'); // YYYY-MM-DD format
-
-            if (!scrapByStartDate[startDate]) {
-                scrapByStartDate[startDate] = {
-                    totalScrap: 0,
-                    pallets: []
-                };
-            }
-
-            scrapByStartDate[startDate].totalScrap += event.scrap;
-            scrapByStartDate[startDate].pallets.push({
-                palletId: event.palletIds.join(', '),
-                room: event.room,
-                itemName: event.details.Name || 'Unknown',
-                scrap: event.scrap
-            });
-        });
-
-        renderScrapSummary(scrapByStartDate);
-    };
-
-    const renderScrapSummary = (scrapData) => {
-        scrapSummaryContainer.innerHTML = '';
-        const sortedDates = Object.keys(scrapData).sort((a, b) => new Date(b) - new Date(a));
-
-        if (sortedDates.length === 0) {
-             scrapSummaryContainer.innerHTML = '<p>No discharge events with scrap have been recorded yet.</p>';
-        } else {
-             sortedDates.forEach(date => {
-                const data = scrapData[date];
-                const formattedDate = new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'scrap-group';
-                
-                let palletListHtml = '<ul>';
-                data.pallets.forEach(p => {
-                    palletListHtml += `<li>${p.palletId} (${p.room} - ${p.itemName}): <strong>${p.scrap.toFixed(2)} kg</strong></li>`;
+                    groupDiv.innerHTML = `
+                        <h4>Start Date: ${formattedDate} | Total Scrap: <span>${data.totalScrap.toFixed(2)} kg</span></h4>
+                        ${palletListHtml}
+                    `;
+                    scrapSummaryContainer.appendChild(groupDiv);
                 });
-                palletListHtml += '</ul>';
-
-                groupDiv.innerHTML = `
-                    <h4>Start Date: ${formattedDate} | Total Scrap: <span>${data.totalScrap.toFixed(2)} kg</span></h4>
-                    ${palletListHtml}
-                `;
-                scrapSummaryContainer.appendChild(groupDiv);
-            });
-        }
-       
-        openModal(scrapModal);
-    };
-
-    // --- PALLET ACTIONS & MULTI-SELECT ---
-    const occupyPallet = (palletId, detailsOverride = null, startTimeOverride = null) => {
-        const { details, allFieldsValid, startTime } = detailsOverride ? 
-            { details: detailsOverride, allFieldsValid: true, startTime: startTimeOverride } : 
-            getFormData(palletModal.querySelector('.modal-body-scrollable'));
-
-        if (!allFieldsValid) {
-             showCustomAlert('Error', 'Please fill in all required standard details, including selecting an item name.');
-             return;
-        }
-
-        const finalStartTime = startTimeOverride || startTime;
-
-        const multiRoomState = getMultiRoomState();
-        multiRoomState[currentRoom][palletId] = { 
-            occupied: true, 
-            details, 
-            startTime: finalStartTime, 
-            notificationSent: false, 
-            durationMs: DURATION_MS,
-            lastDischargeEvent: null
+            }
+            
+            openModal(scrapModal);
         };
-        saveMultiRoomState(multiRoomState);
-        logHistory('OCCUPY', `Occupied pallet ${palletId}.`, currentRoom, palletId, details, { startTime: finalStartTime });
-        renderCurrentRoom();
-        closeModal(palletModal);
-    };
 
-    const clearPallet = (palletId) => {
-        dischargeModalTitle.textContent = `Discharge Pallet ${palletId} (${currentRoom})`;
-        dischargeCartonsInput.value = '';
-        dischargeUnitInput.value = '';
-        dischargeScrapInput.value = '';
-        openModal(dischargeModal);
-        dischargeModalConfirmBtn.dataset.palletId = palletId;
-    };
+        // --- PALLET ACTIONS & MULTI-SELECT ---
+        const occupyPallet = async (palletId, detailsOverride = null, startTimeOverride = null) => {
+            const { details, allFieldsValid, startTime } = detailsOverride ? 
+                { details: detailsOverride, allFieldsValid: true, startTime: startTimeOverride } : 
+                getFormData(palletModal.querySelector('.modal-body-scrollable'));
 
-    const confirmDischarge = () => {
-        const palletId = dischargeModalConfirmBtn.dataset.palletId;
-        const cartons = parseInt(dischargeCartonsInput.value, 10) || 0;
-        const unit = dischargeUnitInput.value.trim();
-        const scrap = parseFloat(dischargeScrapInput.value) || 0;
-        const multiRoomState = getMultiRoomState();
-        const pallet = multiRoomState[currentRoom][palletId];
-        const palletDetails = pallet.details;
-        const startTime = pallet.startTime; // Capture the start time before clearing
-
-        const dischargeEvent = {
-            type: 'DISCHARGE',
-            message: `Discharged pallet ${palletId}.`,
-            room: currentRoom,
-            palletIds: [palletId],
-            details: {...palletDetails, startTime: startTime}, // Add start time to details for history
-            timestamp: new Date().toISOString(),
-            cartons,
-            unit,
-            scrap
-        };
-        
-        logHistory('DISCHARGE', dischargeEvent.message, currentRoom, palletId, dischargeEvent.details, { cartons, unit, scrap });
-
-        pallet.occupied = false;
-        pallet.details = null;
-        pallet.startTime = null;
-        pallet.notificationSent = false;
-        pallet.durationMs = null;
-        pallet.lastDischargeEvent = dischargeEvent;
-
-        saveMultiRoomState(multiRoomState);
-        
-        renderCurrentRoom();
-        closeModal(dischargeModal);
-        closeModal(palletModal);
-    };
-    
-    const showMultiDischargeForm = () => {
-        dischargeModalTitle.textContent = `Discharge ${selectedPallets.length} Selected Pallets`;
-        dischargeCartonsInput.value = '';
-        dischargeUnitInput.value = '';
-        dischargeScrapInput.value = '';
-
-        // Clone and replace the button to ensure only one listener is attached
-        const newConfirmBtn = dischargeModalConfirmBtn.cloneNode(true);
-        dischargeModalConfirmBtn.parentNode.replaceChild(newConfirmBtn, dischargeModalConfirmBtn);
-        
-        newConfirmBtn.addEventListener('click', confirmMultiDischarge, { once: true });
-        
-        openModal(dischargeModal);
-    };
-
-    const confirmMultiDischarge = () => {
-        const cartons = parseInt(dischargeCartonsInput.value, 10) || 0;
-        const unit = dischargeUnitInput.value.trim();
-        const totalScrap = parseFloat(dischargeScrapInput.value) || 0;
-        const multiRoomState = getMultiRoomState();
-        const dischargeTimestamp = new Date().toISOString();
-        const scrapPerPallet = selectedPallets.length > 0 ? totalScrap / selectedPallets.length : 0;
-
-
-        selectedPallets.forEach(palletId => {
-            const pallet = multiRoomState[currentRoom][palletId];
-            if (pallet && pallet.occupied) {
-                const dischargeEvent = {
-                    type: 'DISCHARGE',
-                    details: {...pallet.details, startTime: pallet.startTime},
-                    timestamp: dischargeTimestamp,
-                    cartons, 
-                    unit, 
-                    scrap: scrapPerPallet
-                };
-                
-                 logHistory(
-                    'DISCHARGE', 
-                    `Discharged pallet ${palletId}.`, 
-                    currentRoom, 
-                    [palletId], 
-                    dischargeEvent.details, 
-                    { cartons, unit, scrap: scrapPerPallet }
-                );
-
-                pallet.occupied = false;
-                pallet.details = null;
-                pallet.startTime = null;
-                pallet.notificationSent = false;
-                pallet.durationMs = null;
-                pallet.lastDischargeEvent = dischargeEvent;
+            if (!allFieldsValid) {
+                 showCustomAlert('Error', 'Please fill in all required standard details, including selecting an item name.');
+                 return;
             }
-        });
 
-        saveMultiRoomState(multiRoomState);
-        
-        closeModal(dischargeModal);
-        exitMultiSelectMode();
-        showToast(`${selectedPallets.length} pallets discharged successfully!`, 'success');
-    };
-
-    const clearCurrentRoom = () => {
-        showCustomConfirm(
-            `Clear ALL Pallets in ${currentRoom}`,
-            `This action will clear all occupied pallets in this room. This cannot be undone.`,
-            () => {
-                const multiRoomState = getMultiRoomState();
-                const roomState = multiRoomState[currentRoom];
-                const clearedIds = Object.keys(roomState).filter(id => roomState[id].occupied);
-                if (clearedIds.length > 0) {
-                    logHistory('CLEAR', `Cleared all ${clearedIds.length} occupied pallets from room.`, currentRoom, clearedIds, { 'Product ID': 'Multiple', Name: 'Multiple' });
-                }
-                for (const palletId in roomState) {
-                    roomState[palletId] = { occupied: false, details: null, startTime: null, notificationSent: false, durationMs: null, lastDischargeEvent: null };
-                }
-                saveMultiRoomState(multiRoomState);
-                renderCurrentRoom();
-            }
-        );
-    };
-
-    const savePalletChanges = (palletId) => {
-        const { details, allFieldsValid } = getFormData(palletModal.querySelector('.modal-body-scrollable'));
-        if (!allFieldsValid) return showCustomAlert('Error', 'Please fill in all required details.');
-        const durationInput = document.getElementById('modal-duration-input');
-        const newDurationHours = parseFloat(durationInput.value);
-        if (!newDurationHours || newDurationHours <= 0) return showCustomAlert('Error', 'Please enter a valid number of hours.');
-        
-        showCustomConfirm('Save Changes?', 'Are you sure you want to save these changes? Modifying the duration will restart the timer.', () => {
-            const multiRoomState = getMultiRoomState();
-            const pallet = multiRoomState[currentRoom][palletId];
-            const oldDurationMs = pallet.durationMs || DURATION_MS;
-            const newDurationMs = newDurationHours * 3600000;
-            logHistory('UPDATE', `Updated details for pallet ${palletId}.`, currentRoom, palletId, details);
-            pallet.details = details;
-            if (oldDurationMs !== newDurationMs) {
-                pallet.durationMs = newDurationMs;
-                pallet.startTime = new Date().toISOString();
-                pallet.notificationSent = false;
-                logHistory('RESET', `Updated timer for pallet ${palletId} to ${newDurationHours} hours.`, currentRoom, palletId, details);
-            }
-            saveMultiRoomState(multiRoomState);
-            renderCurrentRoom();
+            const finalStartTime = startTimeOverride || startTime;
+            
+            const newState = JSON.parse(JSON.stringify(multiRoomState)); // Deep copy
+            newState[currentRoom][palletId] = { 
+                occupied: true, 
+                details, 
+                startTime: finalStartTime, 
+                notificationSent: false, 
+                durationMs: DURATION_MS,
+                lastDischargeEvent: null
+            };
+            
+            await setDoc(doc(db, `artifacts/${appId}/users/${userId}/appData/state`), newState);
+            await logHistory('OCCUPY', `Occupied pallet ${palletId}.`, currentRoom, palletId, details, { startTime: finalStartTime });
+            
             closeModal(palletModal);
-        });
-    };
+        };
 
-    const resetMultipleTimers = () => {
-        showCustomConfirm(
-            'Reset Timers?',
-            `Are you sure you want to reset the timers for the ${selectedPallets.length} selected pallets? This will not change their details.`,
-            () => {
-                const multiRoomState = getMultiRoomState();
-                const newStartTime = new Date().toISOString();
-                selectedPallets.forEach(palletId => {
-                    const pallet = multiRoomState[currentRoom][palletId];
-                    if (pallet.occupied) {
-                        pallet.startTime = newStartTime;
-                        pallet.notificationSent = false;
+        const clearPallet = (palletId) => {
+            dischargeModalTitle.textContent = `Discharge Pallet ${palletId} (${currentRoom})`;
+            dischargeCartonsInput.value = '';
+            dischargeUnitInput.value = '';
+            dischargeScrapInput.value = '';
+            openModal(dischargeModal);
+            
+            const newConfirmBtn = dischargeModalConfirmBtn.cloneNode(true);
+            dischargeModalConfirmBtn.parentNode.replaceChild(newConfirmBtn, dischargeModalConfirmBtn);
+
+            newConfirmBtn.onclick = () => confirmDischarge(palletId);
+        };
+
+        const confirmDischarge = async (palletId) => {
+            const cartons = parseInt(dischargeCartonsInput.value, 10) || 0;
+            const unit = dischargeUnitInput.value.trim();
+            const scrap = parseFloat(dischargeScrapInput.value) || 0;
+            
+            const newState = JSON.parse(JSON.stringify(multiRoomState));
+            const pallet = newState[currentRoom][palletId];
+            const palletDetails = pallet.details;
+            const startTime = pallet.startTime;
+
+            const dischargeEvent = {
+                type: 'DISCHARGE',
+                details: {...palletDetails, startTime: startTime}, 
+                timestamp: new Date().toISOString(),
+                cartons, unit, scrap
+            };
+            
+            await logHistory('DISCHARGE', `Discharged pallet ${palletId}.`, currentRoom, [palletId], dischargeEvent.details, { cartons, unit, scrap });
+
+            pallet.occupied = false;
+            pallet.details = null;
+            pallet.startTime = null;
+            pallet.notificationSent = false;
+            pallet.durationMs = null;
+            pallet.lastDischargeEvent = dischargeEvent;
+
+            await setDoc(doc(db, `artifacts/${appId}/users/${userId}/appData/state`), newState);
+            
+            closeModal(dischargeModal);
+            closeModal(palletModal);
+        };
+        
+        const showMultiDischargeForm = () => {
+            dischargeModalTitle.textContent = `Discharge ${selectedPallets.length} Selected Pallets`;
+            dischargeCartonsInput.value = '';
+            dischargeUnitInput.value = '';
+            dischargeScrapInput.value = '';
+
+            const newConfirmBtn = dischargeModalConfirmBtn.cloneNode(true);
+            dischargeModalConfirmBtn.parentNode.replaceChild(newConfirmBtn, dischargeModalConfirmBtn);
+            
+            newConfirmBtn.addEventListener('click', confirmMultiDischarge, { once: true });
+            
+            openModal(dischargeModal);
+        };
+
+        const confirmMultiDischarge = async () => {
+            const cartons = parseInt(dischargeCartonsInput.value, 10) || 0;
+            const unit = dischargeUnitInput.value.trim();
+            const totalScrap = parseFloat(dischargeScrapInput.value) || 0;
+            const dischargeTimestamp = new Date().toISOString();
+            const scrapPerPallet = selectedPallets.length > 0 ? totalScrap / selectedPallets.length : 0;
+            
+            const newState = JSON.parse(JSON.stringify(multiRoomState));
+
+            for(const palletId of selectedPallets) {
+                const pallet = newState[currentRoom][palletId];
+                if (pallet && pallet.occupied) {
+                    const dischargeEvent = {
+                        type: 'DISCHARGE',
+                        details: {...pallet.details, startTime: pallet.startTime},
+                        timestamp: dischargeTimestamp,
+                        cartons, 
+                        unit, 
+                        scrap: scrapPerPallet
+                    };
+                    
+                     await logHistory(
+                        'DISCHARGE', 
+                        `Discharged pallet ${palletId}.`, 
+                        currentRoom, 
+                        [palletId], 
+                        dischargeEvent.details, 
+                        { cartons, unit, scrap: scrapPerPallet }
+                    );
+
+                    pallet.occupied = false;
+                    pallet.details = null;
+                    pallet.startTime = null;
+                    pallet.notificationSent = false;
+                    pallet.durationMs = null;
+                    pallet.lastDischargeEvent = dischargeEvent;
+                }
+            }
+
+            await setDoc(doc(db, `artifacts/${appId}/users/${userId}/appData/state`), newState);
+            
+            closeModal(dischargeModal);
+            exitMultiSelectMode();
+            showToast(`${selectedPallets.length} pallets discharged successfully!`, 'success');
+        };
+
+        const clearCurrentRoom = async () => {
+            showCustomConfirm(
+                `Clear ALL Pallets in ${currentRoom}`,
+                `This action will clear all occupied pallets in this room. This cannot be undone.`,
+                async () => {
+                    const newState = JSON.parse(JSON.stringify(multiRoomState));
+                    const roomState = newState[currentRoom];
+                    const clearedIds = Object.keys(roomState).filter(id => roomState[id].occupied);
+                    
+                    if (clearedIds.length > 0) {
+                        await logHistory('CLEAR', `Cleared all ${clearedIds.length} occupied pallets from room.`, currentRoom, clearedIds, { 'Product ID': 'Multiple', Name: 'Multiple' });
                     }
-                });
-                saveMultiRoomState(multiRoomState);
-                logHistory('RESET', `Reset timers for ${selectedPallets.length} pallets: ${selectedPallets.join(', ')}`, currentRoom, selectedPallets, getMultiRoomState()[currentRoom][selectedPallets[0]].details);
-                exitMultiSelectMode();
-            }
-        );
-    };
+                    for (const palletId in roomState) {
+                        roomState[palletId] = { occupied: false, details: null, startTime: null, notificationSent: false, durationMs: null, lastDischargeEvent: null };
+                    }
+                    await setDoc(doc(db, `artifacts/${appId}/users/${userId}/appData/state`), newState);
+                }
+            );
+        };
 
-    const occupyMultiplePallets = (isCookingBatch = false) => {
-        const modalToUse = isCookingBatch ? cookingModal : palletModal;
-        const container = modalToUse.querySelector('.modal-body-scrollable');
-        const { details, allFieldsValid, startTime } = getFormData(container);
-        if (!allFieldsValid) {
-            showCustomAlert('Error', 'Please fill in all required fields, including selecting an item name.');
-            return;
-        }
-
-        const multiRoomState = getMultiRoomState();
-        const occupiedIds = [];
-        
-        selectedPallets.forEach(palletId => {
-            if (!multiRoomState[currentRoom][palletId].occupied) {
-                multiRoomState[currentRoom][palletId] = { 
-                    occupied: true, 
-                    details, 
-                    startTime, 
-                    notificationSent: false, 
-                    durationMs: DURATION_MS, 
-                    lastDischargeEvent: null 
-                };
-                occupiedIds.push(palletId);
-            }
-        });
-
-        if (occupiedIds.length > 0) {
-            saveMultiRoomState(multiRoomState);
-            logHistory('OCCUPY', `Occupied ${occupiedIds.length} pallets: ${occupiedIds.join(', ')} from cooking batch.`, currentRoom, occupiedIds, details, { startTime: startTime });
-        }
-        
-        exitMultiSelectMode();
-        closeModal(modalToUse);
-    };
-
-    const updateMultiplePallets = () => {
-        const { details, allFieldsValid } = getFormData(palletModal.querySelector('.modal-body-scrollable'));
-        if (!allFieldsValid) {
-            showCustomAlert('Error', 'Please fill in all fields to update.');
-            return;
-        }
-        
-        const durationInput = document.getElementById('modal-duration-input');
-        const newDurationHours = parseFloat(durationInput.value);
-        if (!newDurationHours || newDurationHours <= 0) {
-            showCustomAlert('Error', 'Please enter a valid number of hours.');
-            return;
-        }
-        const newDurationMs = newDurationHours * 3600000;
-
-        const multiRoomState = getMultiRoomState();
-        let timersReset = false;
-        selectedPallets.forEach(palletId => {
-            const pallet = multiRoomState[currentRoom][palletId];
-            if (pallet.occupied) {
-                pallet.details = details;
+        const savePalletChanges = (palletId) => {
+            const { details, allFieldsValid } = getFormData(palletModal.querySelector('.modal-body-scrollable'));
+            if (!allFieldsValid) return showCustomAlert('Error', 'Please fill in all required details.');
+            const durationInput = document.getElementById('modal-duration-input');
+            const newDurationHours = parseFloat(durationInput.value);
+            if (!newDurationHours || newDurationHours <= 0) return showCustomAlert('Error', 'Please enter a valid number of hours.');
+            
+            showCustomConfirm('Save Changes?', 'Are you sure you want to save these changes? Modifying the duration will restart the timer.', async () => {
+                const newState = JSON.parse(JSON.stringify(multiRoomState));
+                const pallet = newState[currentRoom][palletId];
                 const oldDurationMs = pallet.durationMs || DURATION_MS;
+                const newDurationMs = newDurationHours * 3600000;
+
+                await logHistory('UPDATE', `Updated details for pallet ${palletId}.`, currentRoom, palletId, details);
+                pallet.details = details;
+                
                 if (oldDurationMs !== newDurationMs) {
                     pallet.durationMs = newDurationMs;
                     pallet.startTime = new Date().toISOString();
                     pallet.notificationSent = false;
-                    timersReset = true;
+                    await logHistory('RESET', `Updated timer for pallet ${palletId} to ${newDurationHours} hours.`, currentRoom, palletId, details);
                 }
-            }
-        });
-        saveMultiRoomState(multiRoomState);
-        const logMessage = `Updated details${timersReset ? ` and reset timers to ${newDurationHours} hours` : ''} for ${selectedPallets.length} pallets: ${selectedPallets.join(', ')}`;
-        logHistory('UPDATE', logMessage, currentRoom, selectedPallets, details);
-        exitMultiSelectMode();
-        closeModal(palletModal);
-    };
-    
-    // --- FIELD MANAGEMENT ---
-    const renderFieldList = () => {
-        fieldsList.innerHTML = '';
-        const allFields = [...DEFAULT_FIELDS, ...COOKING_FIELDS, ...getFields().filter(f => !DEFAULT_FIELDS.includes(f) && !COOKING_FIELDS.includes(f))];
-        const customFields = getFields().filter(f => !DEFAULT_FIELDS.includes(f) && !COOKING_FIELDS.includes(f));
-        
-        customFields.forEach(field => {
-            const fieldTag = document.createElement('div');
-            fieldTag.className = 'field-tag';
-            fieldTag.textContent = field;
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-field-btn';
-            removeBtn.dataset.field = field;
-            removeBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
-            fieldTag.appendChild(removeBtn);
-            fieldsList.appendChild(fieldTag);
-        });
-    };
-    
-    // --- Main UI functions ---
-    const enterMultiSelectMode = () => {
-        isMultiSelectMode = true;
-        storageRoomView.classList.add('multi-select-active');
-        multiActionContainer.style.display = 'flex';
-        menuContainer.style.display = 'none';
-        cancelMultiSelectBtn.style.display = 'inline-flex';
-        renderSelections();
-    };
-
-    const exitMultiSelectMode = () => {
-        isMultiSelectMode = false;
-        storageRoomView.classList.remove('multi-select-active');
-        multiActionContainer.style.display = 'none';
-        menuContainer.style.display = 'block';
-        cancelMultiSelectBtn.style.display = 'none';
-        selectedPallets = [];
-        renderCurrentRoom();
-    };
-
-
-    const handleMultiSelectClick = (palletId) => {
-        const index = selectedPallets.indexOf(palletId);
-        if (index > -1) selectedPallets.splice(index, 1);
-        else selectedPallets.push(palletId);
-        renderSelections();
-    };
-
-    const renderSelections = () => {
-        const roomState = getMultiRoomState()[currentRoom];
-        document.querySelectorAll('.pallet').forEach(p => p.classList.remove('selected'));
-        selectedPallets.forEach(id => {
-            const palletDiv = document.getElementById(id);
-            if (palletDiv) palletDiv.classList.add('selected');
-        });
-
-        let emptyCount = 0, occupiedCount = 0;
-        selectedPallets.forEach(id => {
-            if (roomState[id] && roomState[id].occupied) occupiedCount++;
-            else emptyCount++;
-        });
-
-        const previouslySelectedAction = multiActionButton.dataset.value;
-        multiActionDropdown.innerHTML = ''; // Clear previous options
-        let availableActions = [];
-
-        if (emptyCount > 0 && occupiedCount === 0) {
-            availableActions.push({ value: 'occupy', text: 'Occupy (Simple)' });
-            availableActions.push({ value: 'assign_cooking', text: 'Assign from Cooking' });
-        }
-        if (occupiedCount > 0 && emptyCount === 0) {
-            availableActions.push({ value: 'update', text: 'Update Details & Duration' });
-            availableActions.push({ value: 'reset', text: 'Reset Timers Only' });
-            availableActions.push({ value: 'discharge', text: `Discharge ${occupiedCount} Pallet(s)` });
-        }
-        
-        availableActions.forEach(action => {
-            const item = document.createElement('button');
-            item.className = 'menu-item';
-            item.dataset.value = action.value;
-            item.textContent = action.text;
-            multiActionDropdown.appendChild(item);
-        });
-        
-        const mainButtonText = multiActionButton.querySelector('span');
-
-        if (availableActions.some(opt => opt.value === previouslySelectedAction)) {
-            mainButtonText.textContent = availableActions.find(a => a.value === previouslySelectedAction).text;
-        } else {
-            mainButtonText.textContent = 'Select Action...';
-            multiActionButton.dataset.value = '';
-        }
-
-        multiActionGoBtn.disabled = selectedPallets.length === 0 || !multiActionButton.dataset.value;
-    };
-
-    const getFormData = (container) => {
-        const details = {};
-        let allFieldsValid = true;
-        const allFields = [...DEFAULT_FIELDS, ...COOKING_FIELDS, ...getFields().filter(f => !DEFAULT_FIELDS.includes(f) && !COOKING_FIELDS.includes(f))];
-        
-        allFields.forEach(field => {
-            const input = container.querySelector(`[data-field="${field}"]`);
-            if (input) {
-                const value = input.value.trim();
-                 if ((!value || value === "Select an Item") && !['description'].includes(field.toLowerCase()) && !field.toLowerCase().includes('batch')) {
-                    allFieldsValid = false;
-                }
-                details[field] = value;
-            }
-        });
-        
-        const startTimeInput = container.querySelector(`[data-field="startTime"]`);
-        const startTime = startTimeInput ? new Date(startTimeInput.value).toISOString() : new Date().toISOString();
-
-        return { details, allFieldsValid, startTime };
-    };
-
-    const handlePalletClick = (palletId) => {
-        if (isMultiSelectMode) {
-            handleMultiSelectClick(palletId);
-            return;
-        }
-        const palletData = getMultiRoomState()[currentRoom][palletId];
-        if (palletData.occupied) {
-            showPalletDetailsView(palletId, palletData);
-        } else if (palletData.lastDischargeEvent) {
-            showLastDischargeDetailsView(palletId, palletData.lastDischargeEvent);
-        } else {
-            showOccupyForm(palletId);
-        }
-    };
-
-    const showOccupyForm = (palletId) => {
-        modalTitle.textContent = `Occupy Pallet ${palletId} (${currentRoom})`;
-        buildForm(modalBody, {}, getFields());
-        modalActionBtn.className = 'btn btn-success';
-        modalActionBtn.textContent = 'Occupy Pallet';
-        modalActionBtn.onclick = () => {
-            const startTime = new Date(modalBody.querySelector('#modal-start-time').value).toISOString();
-            occupyPallet(palletId, null, startTime);
+                
+                await setDoc(doc(db, `artifacts/${appId}/users/${userId}/appData/state`), newState);
+                closeModal(palletModal);
+            });
         };
-        modalUpdateBtn.style.display = 'none';
-        modalActionBtn.style.display = 'inline-block';
-        openModal(palletModal);
-    };
-    
-    const showLastDischargeDetailsView = (palletId, dischargeEvent) => {
-        modalTitle.textContent = `Last Contents of Pallet ${palletId}`;
-        let detailsText = '';
-        if (dischargeEvent.details) {
-            detailsText += '<p><strong>Previous Pallet Details:</strong></p>';
-            for (const key in dischargeEvent.details) {
-                if (key !== 'startTime') { // Don't show start time here
-                    detailsText += `<strong>${key}:</strong> ${dischargeEvent.details[key]}<br>`;
+
+        const resetMultipleTimers = () => {
+            showCustomConfirm(
+                'Reset Timers?',
+                `Are you sure you want to reset the timers for the ${selectedPallets.length} selected pallets? This will not change their details.`,
+                async () => {
+                    const newState = JSON.parse(JSON.stringify(multiRoomState));
+                    const newStartTime = new Date().toISOString();
+                    selectedPallets.forEach(palletId => {
+                        const pallet = newState[currentRoom][palletId];
+                        if (pallet.occupied) {
+                            pallet.startTime = newStartTime;
+                            pallet.notificationSent = false;
+                        }
+                    });
+                    
+                    await setDoc(doc(db, `artifacts/${appId}/users/${userId}/appData/state`), newState);
+                    await logHistory('RESET', `Reset timers for ${selectedPallets.length} pallets: ${selectedPallets.join(', ')}`, currentRoom, selectedPallets, multiRoomState[currentRoom][selectedPallets[0]].details);
+                    exitMultiSelectMode();
                 }
-            }
-            if (dischargeEvent.details.startTime) {
-                 detailsText += `<strong>Original Start Time:</strong> ${formatDateTime(dischargeEvent.details.startTime)}<br>`;
-            }
-        }
-        detailsText += `<div class="details-section">
-            <p class="discharged-title"><strong>Discharged at ${formatDateTime(dischargeEvent.timestamp)}</strong></p>
-            <strong>Cartons:</strong> ${dischargeEvent.cartons || 'N/A'}<br>
-            <strong>Unit:</strong> ${dischargeEvent.unit || 'N/A'}<br>
-            <strong>Scrap:</strong> ${dischargeEvent.scrap ? dischargeEvent.scrap.toFixed(2) : '0.00'} kg<br>
-        </div>`;
-        modalBody.innerHTML = detailsText;
-        
-        modalActionBtn.style.display = 'none';
-        
-        modalUpdateBtn.className = 'btn btn-success';
-        modalUpdateBtn.textContent = 'Re-Occupy Pallet';
-        modalUpdateBtn.onclick = () => showOccupyForm(palletId);
-        
-        modalUpdateBtn.style.display = 'inline-block';
-        openModal(palletModal);
-    };
+            );
+        };
 
-
-    const showPalletDetailsView = (palletId, palletData) => {
-        modalTitle.textContent = `Pallet ${palletId} (${currentRoom}) Details`;
-        let detailsHtml = '';
-        for (const key in palletData.details) {
-            detailsHtml += `<p><strong>${key}:</strong> ${palletData.details[key]}</p>`;
-        }
-        detailsHtml += `<p><strong>Start Time:</strong> ${formatDateTime(palletData.startTime)}</p>`;
-        modalBody.innerHTML = detailsHtml;
-        modalActionBtn.style.display = 'inline-block';
-        modalActionBtn.className = 'btn btn-danger';
-        modalActionBtn.textContent = 'Discharge Pallet';
-        modalActionBtn.onclick = () => clearPallet(palletId);
-        modalUpdateBtn.style.display = 'inline-block';
-        modalUpdateBtn.textContent = 'Edit Pallet';
-        modalUpdateBtn.onclick = () => showEditPalletView(palletId, palletData);
-        openModal(palletModal);
-    };
-
-    const showEditPalletView = (palletId, palletData) => {
-        modalTitle.textContent = `Edit Pallet ${palletId} (${currentRoom})`;
-        buildForm(modalBody, palletData.details, [...getFields(), ...COOKING_FIELDS]);
-        const currentDurationHours = (palletData.durationMs || DURATION_MS) / 3600000;
-        const durationField = `
-            <div class="form-field">
-                <label for="modal-duration-input">Hold Duration (Hours)</label>
-                <input type="number" id="modal-duration-input" value="${currentDurationHours}">
-            </div>`;
-        modalBody.insertAdjacentHTML('beforeend', durationField);
-        modalActionBtn.style.display = 'inline-block';
-        modalActionBtn.className = 'btn';
-        modalActionBtn.textContent = 'Cancel';
-        modalActionBtn.onclick = () => showPalletDetailsView(palletId, palletData);
-        modalUpdateBtn.style.display = 'inline-block';
-        modalUpdateBtn.textContent = 'Save Changes';
-        modalUpdateBtn.onclick = () => savePalletChanges(palletId);
-    };
-    
-    // --- APP INITIALIZATION ---
-    const initializeApp = () => {
-        // Theme setup
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.body.className = `${savedTheme}-theme`;
-
-        // Set default datetime for history snapshot to now
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        historyDatetimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
-
-        durationInput.value = getHoldDurationHours();
-        DURATION_MS = getHoldDurationHours() * 3600000;
-        for (let i = 1; i <= 13; i++) {
-            leftPalletsContainer.innerHTML += `<div id="L${i}" class="pallet"></div>`;
-            rightPalletsContainer.innerHTML += `<div id="R${i}" class="pallet"></div>`;
-        }
-        
-        ROOM_NAMES.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            historyRoomSelect.appendChild(option.cloneNode(true));
-        });
-
-        // Event Listeners
-        multiActionGoBtn.addEventListener('click', () => {
-             const action = multiActionButton.dataset.value;
-             switch(action) {
-                 case 'occupy':
-                      modalTitle.textContent = `Occupy ${selectedPallets.length} Selected Pallets (Simple)`;
-                     buildForm(modalBody, {}, getFields());
-                     modalActionBtn.textContent = 'Confirm for All';
-                     modalActionBtn.className = 'btn btn-success';
-                     modalActionBtn.style.display = 'inline-block';
-                     modalUpdateBtn.style.display = 'none';
-                     modalActionBtn.onclick = () => occupyMultiplePallets(false);
-                     openModal(palletModal);
-                     break;
-                 case 'assign_cooking':
-                    cookingModalTitle.textContent = `Assign Cooking Batch to ${selectedPallets.length} Pallets`;
-                    buildForm(cookingModalBody, {}, [...DEFAULT_FIELDS, ...COOKING_FIELDS]);
-                    openModal(cookingModal);
-                    break;
-                 case 'update':
-                        modalTitle.textContent = `Update Details for ${selectedPallets.length} Pallets`;
-                       buildForm(modalBody, getMultiRoomState()[currentRoom][selectedPallets[0]].details, [...getFields(), ...COOKING_FIELDS]);
-                       const firstPalletData = getMultiRoomState()[currentRoom][selectedPallets[0]];
-                       const currentDurationHours = (firstPalletData.durationMs || DURATION_MS) / 3600000;
-                       const durationField = `
-                           <div class="form-field">
-                               <label for="modal-duration-input">Hold Duration (Hours)</label>
-                               <input type="number" id="modal-duration-input" value="${currentDurationHours}">
-                           </div>`;
-                       modalBody.insertAdjacentHTML('beforeend', durationField);
-                       modalActionBtn.textContent = 'Save for All';
-                       modalActionBtn.className = 'btn btn-success';
-                       modalActionBtn.style.display = 'inline-block';
-                       modalUpdateBtn.style.display = 'none';
-                       modalActionBtn.onclick = updateMultiplePallets;
-                       openModal(palletModal);
-                       break;
-                 case 'reset':
-                      resetMultipleTimers();
-                      break;
-                 case 'discharge':
-                      showMultiDischargeForm();
-                      break;
-             }
-         });
-         
-        multiActionButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            multiActionDropdown.classList.toggle('show');
-            multiActionButton.classList.toggle('open');
-        });
-
-        multiActionDropdown.addEventListener('click', (e) => {
-            const target = e.target.closest('.menu-item');
-            if (target) {
-                multiActionButton.dataset.value = target.dataset.value;
-                const mainButtonText = multiActionButton.querySelector('span');
-                mainButtonText.textContent = target.textContent;
-                multiActionDropdown.classList.remove('show');
-                multiActionButton.classList.remove('open');
-                renderSelections(); 
-            }
-        });
-
-        // Status filter event listeners
-        statusFilterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                handleStatusFilter(btn.dataset.status);
-            });
-        });
-        
-        // Dashboard stat cards as status filters
-        document.querySelectorAll('.stat-card').forEach(card => {
-            card.addEventListener('click', () => {
-                handleStatusFilter(card.dataset.status);
-            });
-        });
-        
-        clearFilterBtn.addEventListener('click', () => {
-            handleStatusFilter('all');
-        });
-        
-        themeToggleBtn.addEventListener('click', () => {
-             const currentTheme = document.body.className.includes('dark') ? 'dark' : 'light';
-             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-             document.body.className = `${newTheme}-theme`;
-             localStorage.setItem('theme', newTheme);
-        });
-
-        clearRoomBtn.addEventListener('click', clearCurrentRoom);
-        clearHistoryBtn.addEventListener('click', clearHistory);
-        toggleHistoryBtn.addEventListener('click', () => openModal(historyModal));
-        toggleReportBtn.addEventListener('click', () => openModal(reportModal));
-        toggleSettingsBtn.addEventListener('click', () => openModal(settingsModal));
-        toggleSearchBtn.addEventListener('click', () => openModal(searchModal));
-        calculateScrapBtn.addEventListener('click', calculateAndShowScrap);
-        performSearchBtn.addEventListener('click', performLifecycleSearch);
-        exportSearchCsvBtn.addEventListener('click', exportLifecycleResultsToCSV);
-        cookingModalConfirmBtn.addEventListener('click', () => occupyMultiplePallets(true));
-
-        generateReportBtn.addEventListener('click', renderReport);
-        exportCsvBtn.addEventListener('click', () => {
-             const selectedRoom = reportRoomSelect.value;
-             const reportData = generateReportData(selectedRoom);
-             const headers = ["Item Name", "Total Pallets", "Avg Remaining Hours"];
-             const rows = Object.entries(reportData).map(([itemName, data]) => {
-                 return [itemName, data.count, (data.totalRemainingMs / 3600000).toFixed(2)];
-             });
-             exportToCSV(headers, rows, `pallet_summary_report_${new Date().toISOString().slice(0, 10)}.csv`);
-        });
-
-        saveDurationBtn.addEventListener('click', () => {
-            const newDuration = parseInt(durationInput.value, 10);
-            if (newDuration && newDuration > 0) {
-                localStorage.setItem('palletHoldDuration', newDuration);
-                DURATION_MS = newDuration * 3600000;
-                renderCurrentRoom();
-                showToast('Duration updated successfully!');
-            } else {
-                showCustomAlert('Error', 'Please enter a valid number of hours.');
-            }
-        });
-        viewHistoryStateBtn.addEventListener('click', () => {
-            const selectedDate = historyDatetimeInput.value;
-            const selectedRoom = historyRoomSelect.value;
-            if (!selectedDate) {
-                showCustomAlert('Error', 'Please select a date and time.');
+        const occupyMultiplePallets = async (isCookingBatch = false) => {
+            const modalToUse = isCookingBatch ? cookingModal : palletModal;
+            const container = modalToUse.querySelector('.modal-body-scrollable');
+            const { details, allFieldsValid, startTime } = getFormData(container);
+            if (!allFieldsValid) {
+                showCustomAlert('Error', 'Please fill in all required fields, including selecting an item name.');
                 return;
             }
-            renderSnapshotView(selectedRoom, selectedDate);
-        });
 
-        exportHistoryCsvBtn.addEventListener('click', () => {
-            const history = getHistory();
-            const headers = ["Timestamp", "Action", "Room", "Pallet(s)", "Product ID", "Product Name", "Description", "Cartons", "Unit", "Scrap (kg)"];
-            const rows = history.map(event => {
-                const details = event.details || {};
-                return [
-                    formatDateTime(event.timestamp),
-                    event.type,
-                    event.room,
-                    event.palletIds.join('; '),
-                    details['Product ID'] || '',
-                    details['Name'] || '',
-                    details['Description'] || '',
-                    event.cartons || '',
-                    event.unit || '',
-                    event.scrap || ''
-                ];
+            const newState = JSON.parse(JSON.stringify(multiRoomState));
+            const occupiedIds = [];
+            
+            selectedPallets.forEach(palletId => {
+                if (!newState[currentRoom][palletId].occupied) {
+                    newState[currentRoom][palletId] = { 
+                        occupied: true, 
+                        details, 
+                        startTime, 
+                        notificationSent: false, 
+                        durationMs: DURATION_MS, 
+                        lastDischargeEvent: null 
+                    };
+                    occupiedIds.push(palletId);
+                }
             });
-            exportToCSV(headers, rows, `full_history_log_${new Date().toISOString().slice(0, 10)}.csv`);
-        });
 
-        exportSnapshotCsvBtn.addEventListener('click', () => {
-            const headers = ["Pallet", "Status", "Product ID", "Name", "Discharge Time", "Cartons", "Unit", "Scrap (kg)"];
-            const rows = lastSnapshotData.map(item => [
-                item.pallet,
-                item.status,
-                item.productId,
-                item.name,
-                item.dischargeTime,
-                item.cartons,
-                item.unit,
-                item.scrap
-            ]);
-            const roomName = snapshotModalTitle.textContent.split('of ')[1].split(' at')[0];
-            const date = snapshotModalTitle.textContent.split(' at ')[1].replace(/[:\s]/g, '-');
-            exportToCSV(headers, rows, `snapshot_${roomName}_${date}.csv`);
-        });
+            if (occupiedIds.length > 0) {
+                await setDoc(doc(db, `artifacts/${appId}/users/${userId}/appData/state`), newState);
+                await logHistory('OCCUPY', `Occupied ${occupiedIds.length} pallets: ${occupiedIds.join(', ')} from cooking batch.`, currentRoom, occupiedIds, details, { startTime: startTime });
+            }
+            
+            exitMultiSelectMode();
+            closeModal(modalToUse);
+        };
 
-        const switchRoom = (roomName) => {
-            currentRoom = roomName;
-            if (isMultiSelectMode) exitMultiSelectMode();
-            document.querySelector('#aisle-filter button[data-aisle="all"]').click();
-            renderRoomTabs();
-            renderCurrentRoom();
+        const updateMultiplePallets = async () => {
+            const { details, allFieldsValid } = getFormData(palletModal.querySelector('.modal-body-scrollable'));
+            if (!allFieldsValid) {
+                showCustomAlert('Error', 'Please fill in all fields to update.');
+                return;
+            }
+            
+            const durationInput = document.getElementById('modal-duration-input');
+            const newDurationHours = parseFloat(durationInput.value);
+            if (!newDurationHours || newDurationHours <= 0) {
+                showCustomAlert('Error', 'Please enter a valid number of hours.');
+                return;
+            }
+            const newDurationMs = newDurationHours * 3600000;
+
+            const newState = JSON.parse(JSON.stringify(multiRoomState));
+            let timersReset = false;
+            selectedPallets.forEach(palletId => {
+                const pallet = newState[currentRoom][palletId];
+                if (pallet.occupied) {
+                    pallet.details = details;
+                    const oldDurationMs = pallet.durationMs || DURATION_MS;
+                    if (oldDurationMs !== newDurationMs) {
+                        pallet.durationMs = newDurationMs;
+                        pallet.startTime = new Date().toISOString();
+                        pallet.notificationSent = false;
+                        timersReset = true;
+                    }
+                }
+            });
+            
+            await setDoc(doc(db, `artifacts/${appId}/users/${userId}/appData/state`), newState);
+            const logMessage = `Updated details${timersReset ? ` and reset timers to ${newDurationHours} hours` : ''} for ${selectedPallets.length} pallets: ${selectedPallets.join(', ')}`;
+            await logHistory('UPDATE', logMessage, currentRoom, selectedPallets, details);
+            
+            exitMultiSelectMode();
+            closeModal(palletModal);
         };
         
-        roomTabsContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('room-tab')) switchRoom(e.target.dataset.roomName);
-        });
-        roomSelect.addEventListener('change', (e) => switchRoom(e.target.value));
-
-        aisleFilterContainer.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                const filter = e.target.dataset.aisle;
-                 aisleFilterContainer.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-                 e.target.classList.add('active');
-                 roomLayout.classList.remove('filter-left', 'filter-right');
-                 if (filter === 'left') roomLayout.classList.add('filter-left');
-                 else if (filter === 'right') roomLayout.classList.add('filter-right');
-            }
-        });
-
-        roomLayout.addEventListener('click', (e) => {
-            const palletDiv = e.target.closest('.pallet');
-            if (palletDiv) handlePalletClick(palletDiv.id);
-        });
-
-        [modalCloseBtn, detailsAlertCloseBtn, dischargeModalCloseBtn, confirmModalCancelBtn, reportModalCloseBtn, historyModalCloseBtn, snapshotModalCloseBtn, settingsModalCloseBtn, searchModalCloseBtn, cookingModalCloseBtn, scrapModalCloseBtn].forEach(btn => {
-            btn.addEventListener('click', () => closeModal(btn.closest('.modal-backdrop')));
-        });
-        dischargeModalConfirmBtn.addEventListener('click', confirmDischarge);
-        
-        addFieldBtn.addEventListener('click', () => {
-            const fieldName = fieldNameInput.value.trim();
-            if (fieldName) {
-                const fields = getFields();
-                if (!fields.map(f=>f.toLowerCase()).includes(fieldName.toLowerCase())) {
-                    fields.push(fieldName);
-                    localStorage.setItem('noteFields', JSON.stringify(fields));
-                    renderFieldList();
-                } else {
-                    showCustomAlert('Error', 'This field already exists.');
-                }
-                fieldNameInput.value = '';
-            }
-        });
-        
-        fieldsList.addEventListener('click', (e) => {
-            const removeBtn = e.target.closest('.remove-field-btn');
-            if (removeBtn) {
-                const fieldName = removeBtn.dataset.field;
-                let fields = getFields().filter(f => f !== fieldName);
-                localStorage.setItem('noteFields', JSON.stringify(fields));
-                renderFieldList();
-            }
-        });
-
-        historySearchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            document.querySelectorAll('.history-entry').forEach(entry => {
-                const isVisible = entry.dataset.searchableContent.includes(searchTerm);
-                entry.style.display = isVisible ? 'flex' : 'none';
+        // --- FIELD MANAGEMENT ---
+        const renderFieldList = () => {
+            fieldsList.innerHTML = '';
+            const customFields = getFields().filter(f => !DEFAULT_FIELDS.includes(f) && !COOKING_FIELDS.includes(f));
+            
+            customFields.forEach(field => {
+                const fieldTag = document.createElement('div');
+                fieldTag.className = 'field-tag';
+                fieldTag.textContent = field;
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-field-btn';
+                removeBtn.dataset.field = field;
+                removeBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
+                fieldTag.appendChild(removeBtn);
+                fieldsList.appendChild(fieldTag);
             });
-        });
+        };
         
-        // Menu & Dropdown Toggle Logic
-        document.addEventListener('click', (e) => {
-            if (!controlsMenu.contains(e.target) && !menuToggleBtn.contains(e.target)) {
-                controlsMenu.classList.remove('show');
-            }
-            if (!multiActionContainer.contains(e.target)) {
-                multiActionDropdown.classList.remove('show');
-                multiActionButton.classList.remove('open');
-            }
-             if (e.target.closest('.menu-item')) {
-                 controlsMenu.classList.remove('show');
-            }
-        });
+        // NEW: Render field management list
+        const renderFieldManagementList = () => {
+            fieldManagementList.innerHTML = '';
+            const allFields = getFields();
+            
+            allFields.forEach(field => {
+                const listItem = document.createElement('div');
+                listItem.className = 'field-list-item';
+                listItem.innerHTML = `
+                    <span>${field}</span>
+                    <div class="field-actions">
+                        <button class="edit-field-btn" data-field="${field}" title="Edit Field Name">
+                            <svg class="icon" viewBox="0 0 24 24" width="16" height="16"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </button>
+                        ${!DEFAULT_FIELDS.includes(field) && !COOKING_FIELDS.includes(field) ? `
+                        <button class="delete-field-btn" data-field="${field}" title="Delete Field">
+                            <svg class="icon" viewBox="0 0 24 24" width="16" height="16"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                        </button>
+                        ` : ''}
+                    </div>
+                `;
+                fieldManagementList.appendChild(listItem);
+            });
+            
+            // Add event listeners for edit and delete buttons
+            document.querySelectorAll('.edit-field-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const oldFieldName = e.currentTarget.dataset.field;
+                    const newFieldName = prompt('Enter new field name:', oldFieldName);
+                    if (newFieldName && newFieldName.trim() !== '' && newFieldName.trim() !== oldFieldName) {
+                        const updatedFields = getFields().map(f => f === oldFieldName ? newFieldName.trim() : f);
+                        
+                        // Also update the COOKING_FIELDS array if it's a cooking field
+                        const cookingIndex = COOKING_FIELDS.indexOf(oldFieldName);
+                        if (cookingIndex > -1) {
+                            COOKING_FIELDS[cookingIndex] = newFieldName.trim();
+                        }
+
+                        appSettings.fields = updatedFields;
+                        saveSettings();
+                        showToast('Field name updated successfully.', 'success');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.delete-field-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const fieldName = e.currentTarget.dataset.field;
+                    showCustomConfirm('Delete Field', `Are you sure you want to delete the field "${fieldName}"? This will remove it from all forms.`, async () => {
+                        const updatedFields = getFields().filter(f => f !== fieldName);
+                        appSettings.fields = updatedFields;
+                        await saveSettings();
+                        showToast('Field deleted successfully.', 'success');
+                    });
+                });
+            });
+        };
         
-        multiSelectToggleBtn.addEventListener('click', enterMultiSelectMode);
-        cancelMultiSelectBtn.addEventListener('click', exitMultiSelectMode);
-        menuToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            controlsMenu.classList.toggle('show');
-        });
+        // --- Main UI functions ---
+        const enterMultiSelectMode = () => {
+            isMultiSelectMode = true;
+            storageRoomView.classList.add('multi-select-active');
+            multiActionContainer.style.display = 'flex';
+            menuContainer.style.display = 'none';
+            cancelMultiSelectBtn.style.display = 'inline-flex';
+            renderSelections();
+        };
+
+        const exitMultiSelectMode = () => {
+            isMultiSelectMode = false;
+            storageRoomView.classList.remove('multi-select-active');
+            multiActionContainer.style.display = 'none';
+            menuContainer.style.display = 'block';
+            cancelMultiSelectBtn.style.display = 'none';
+            selectedPallets = [];
+            renderCurrentRoom();
+        };
 
 
-        Notification.requestPermission();
+        const handleMultiSelectClick = (palletId) => {
+            const index = selectedPallets.indexOf(palletId);
+            if (index > -1) selectedPallets.splice(index, 1);
+            else selectedPallets.push(palletId);
+            renderSelections();
+        };
+
+        const renderSelections = () => {
+            if (!multiRoomState || !multiRoomState[currentRoom]) return;
+            const roomState = multiRoomState[currentRoom];
+            document.querySelectorAll('.pallet').forEach(p => p.classList.remove('selected'));
+            selectedPallets.forEach(id => {
+                const palletDiv = document.getElementById(id);
+                if (palletDiv) palletDiv.classList.add('selected');
+            });
+
+            let emptyCount = 0, occupiedCount = 0;
+            selectedPallets.forEach(id => {
+                if (roomState[id] && roomState[id].occupied) occupiedCount++;
+                else emptyCount++;
+            });
+
+            const previouslySelectedAction = multiActionButton.dataset.value;
+            multiActionDropdown.innerHTML = ''; // Clear previous options
+            let availableActions = [];
+
+            if (emptyCount > 0 && occupiedCount === 0) {
+                availableActions.push({ value: 'occupy', text: 'Occupy (Simple)' });
+                availableActions.push({ value: 'assign_cooking', text: 'Assign from Cooking' });
+            }
+            if (occupiedCount > 0 && emptyCount === 0) {
+                availableActions.push({ value: 'update', text: 'Update Details & Duration' });
+                availableActions.push({ value: 'reset', text: 'Reset Timers Only' });
+                availableActions.push({ value: 'discharge', text: `Discharge ${occupiedCount} Pallet(s)` });
+            }
+            
+            availableActions.forEach(action => {
+                const item = document.createElement('button');
+                item.className = 'menu-item';
+                item.dataset.value = action.value;
+                item.textContent = action.text;
+                multiActionDropdown.appendChild(item);
+            });
+            
+            const mainButtonText = multiActionButton.querySelector('span');
+
+            if (availableActions.some(opt => opt.value === previouslySelectedAction)) {
+                mainButtonText.textContent = availableActions.find(a => a.value === previouslySelectedAction).text;
+            } else {
+                mainButtonText.textContent = 'Select Action...';
+                multiActionButton.dataset.value = '';
+            }
+
+            multiActionGoBtn.disabled = selectedPallets.length === 0 || !multiActionButton.dataset.value;
+        };
+
+        const getFormData = (container) => {
+            const details = {};
+            let allFieldsValid = true;
+            const allFields = getFields();
+            
+            allFields.forEach(field => {
+                const input = container.querySelector(`[data-field="${field}"]`);
+                if (input) {
+                    const value = input.value.trim();
+                     if ((!value || value === "Select an Item") && !['description'].includes(field.toLowerCase()) && !field.toLowerCase().includes('batch') && field !== 'Cooking Date') {
+                        allFieldsValid = false;
+                    }
+                    details[field] = value;
+                }
+            });
+            
+            const startTimeInput = container.querySelector(`[data-field="startTime"]`);
+            const startTime = startTimeInput ? new Date(startTimeInput.value).toISOString() : new Date().toISOString();
+
+            return { details, allFieldsValid, startTime };
+        };
+
+        const handlePalletClick = (palletId) => {
+            if (isMultiSelectMode) {
+                handleMultiSelectClick(palletId);
+                return;
+            }
+            const palletData = multiRoomState[currentRoom][palletId];
+            if (palletData.occupied) {
+                showPalletDetailsView(palletId, palletData);
+            } else if (palletData.lastDischargeEvent) {
+                showLastDischargeDetailsView(palletId, palletData.lastDischargeEvent);
+            } else {
+                showOccupyForm(palletId);
+            }
+        };
+
+        const showOccupyForm = (palletId) => {
+            modalTitle.textContent = `Occupy Pallet ${palletId} (${currentRoom})`;
+            buildForm(modalBody, {}, getFields());
+            modalActionBtn.className = 'btn btn-success';
+            modalActionBtn.textContent = 'Occupy Pallet';
+            modalActionBtn.onclick = () => {
+                const startTime = new Date(modalBody.querySelector('#modal-start-time').value).toISOString();
+                occupyPallet(palletId, null, startTime);
+            };
+            modalUpdateBtn.style.display = 'none';
+            modalActionBtn.style.display = 'inline-block';
+            openModal(palletModal);
+        };
+        
+        const showLastDischargeDetailsView = (palletId, dischargeEvent) => {
+            modalTitle.textContent = `Last Contents of Pallet ${palletId}`;
+            let detailsText = '';
+            if (dischargeEvent.details) {
+                detailsText += '<p><strong>Previous Pallet Details:</strong></p>';
+                for (const key in dischargeEvent.details) {
+                    if (key !== 'startTime') { 
+                        detailsText += `<strong>${key}:</strong> ${dischargeEvent.details[key]}<br>`;
+                    }
+                }
+                if (dischargeEvent.details.startTime) {
+                     detailsText += `<strong>Original Start Time:</strong> ${formatDateTime(dischargeEvent.details.startTime)}<br>`;
+                }
+            }
+            detailsText += `<div class="details-section">
+                <p class="discharged-title"><strong>Discharged at ${formatDateTime(dischargeEvent.timestamp)}</strong></p>
+                <strong>Cartons:</strong> ${dischargeEvent.cartons || 'N/A'}<br>
+                <strong>Unit:</strong> ${dischargeEvent.unit || 'N/A'}<br>
+                <strong>Scrap:</strong> ${dischargeEvent.scrap ? dischargeEvent.scrap.toFixed(2) : '0.00'} kg<br>
+            </div>`;
+            modalBody.innerHTML = detailsText;
+            
+            modalActionBtn.style.display = 'none';
+            
+            modalUpdateBtn.className = 'btn btn-success';
+            modalUpdateBtn.textContent = 'Re-Occupy Pallet';
+            modalUpdateBtn.onclick = () => showOccupyForm(palletId);
+            
+            modalUpdateBtn.style.display = 'inline-block';
+            openModal(palletModal);
+        };
+
+        const showPalletDetailsView = (palletId, palletData) => {
+            modalTitle.textContent = `Pallet ${palletId} (${currentRoom}) Details`;
+            let detailsHtml = '';
+            const fields = getFields();
+            fields.forEach(key => {
+                if (palletData.details && palletData.details.hasOwnProperty(key)) {
+                     detailsHtml += `<p><strong>${key}:</strong> ${palletData.details[key]}</p>`;
+                }
+            });
+            detailsHtml += `<p><strong>Start Time:</strong> ${formatDateTime(palletData.startTime)}</p>`;
+            modalBody.innerHTML = detailsHtml;
+            modalActionBtn.style.display = 'inline-block';
+            modalActionBtn.className = 'btn btn-danger';
+            modalActionBtn.textContent = 'Discharge Pallet';
+            modalActionBtn.onclick = () => clearPallet(palletId);
+            modalUpdateBtn.style.display = 'inline-block';
+            modalUpdateBtn.textContent = 'Edit Pallet';
+            modalUpdateBtn.onclick = () => showEditPalletView(palletId, palletData);
+            openModal(palletModal);
+        };
+
+        const showEditPalletView = (palletId, palletData) => {
+            modalTitle.textContent = `Edit Pallet ${palletId} (${currentRoom})`;
+            buildForm(modalBody, palletData.details, getFields());
+            const currentDurationHours = (palletData.durationMs || DURATION_MS) / 3600000;
+            const durationField = `
+                <div class="form-field">
+                    <label for="modal-duration-input">Hold Duration (Hours)</label>
+                    <input type="number" id="modal-duration-input" value="${currentDurationHours}">
+                </div>`;
+            modalBody.insertAdjacentHTML('beforeend', durationField);
+            modalActionBtn.style.display = 'inline-block';
+            modalActionBtn.className = 'btn';
+            modalActionBtn.textContent = 'Cancel';
+            modalActionBtn.onclick = () => showPalletDetailsView(palletId, palletData);
+            modalUpdateBtn.style.display = 'inline-block';
+            modalUpdateBtn.textContent = 'Save Changes';
+            modalUpdateBtn.onclick = () => savePalletChanges(palletId);
+        };
+
+        const saveSettings = async () => {
+            const settingsDocRef = doc(db, `artifacts/${appId}/users/${userId}/appData/settings`);
+            await setDoc(settingsDocRef, appSettings, { merge: true });
+        };
+        
+        // --- APP INITIALIZATION ---
+        const initializeAppWithFirebase = async () => {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            historyDatetimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+            for (let i = 1; i <= 13; i++) {
+                leftPalletsContainer.innerHTML += `<div id="L${i}" class="pallet"></div>`;
+                rightPalletsContainer.innerHTML += `<div id="R${i}" class="pallet"></div>`;
+            }
+            
+            ROOM_NAMES.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                historyRoomSelect.appendChild(option.cloneNode(true));
+            });
+
+            // Set up all static event listeners
+            setupEventListeners();
+            
+            renderRoomTabs();
+            // The rest of the rendering will be triggered by onSnapshot
+        };
+        
+        const setupEventListeners = () => {
+            multiActionGoBtn.addEventListener('click', () => {
+                const action = multiActionButton.dataset.value;
+                switch(action) {
+                    case 'occupy':
+                        modalTitle.textContent = `Occupy ${selectedPallets.length} Selected Pallets (Simple)`;
+                        buildForm(modalBody, {}, getFields());
+                        modalActionBtn.textContent = 'Confirm for All';
+                        modalActionBtn.className = 'btn btn-success';
+                        modalActionBtn.style.display = 'inline-block';
+                        modalUpdateBtn.style.display = 'none';
+                        modalActionBtn.onclick = () => occupyMultiplePallets(false);
+                        openModal(palletModal);
+                        break;
+                    case 'assign_cooking':
+                        cookingModalTitle.textContent = `Assign Cooking Batch to ${selectedPallets.length} Pallets`;
+                        buildForm(cookingModalBody, {}, getFields());
+                        openModal(cookingModal);
+                        break;
+                    case 'update':
+                        modalTitle.textContent = `Update Details for ${selectedPallets.length} Pallets`;
+                        buildForm(modalBody, multiRoomState[currentRoom][selectedPallets[0]].details, getFields());
+                        const firstPalletData = multiRoomState[currentRoom][selectedPallets[0]];
+                        const currentDurationHours = (firstPalletData.durationMs || DURATION_MS) / 3600000;
+                        const durationField = `
+                            <div class="form-field">
+                                <label for="modal-duration-input">Hold Duration (Hours)</label>
+                                <input type="number" id="modal-duration-input" value="${currentDurationHours}">
+                            </div>`;
+                        modalBody.insertAdjacentHTML('beforeend', durationField);
+                        modalActionBtn.textContent = 'Cancel';
+                        modalActionBtn.onclick = () => closeModal(palletModal);
+                        modalUpdateBtn.textContent = 'Save for All';
+                        modalUpdateBtn.onclick = () => updateMultiplePallets();
+                        modalActionBtn.style.display = 'inline-block';
+                        modalUpdateBtn.style.display = 'inline-block';
+                        openModal(palletModal);
+                        break;
+                    case 'reset':
+                        resetMultipleTimers();
+                        break;
+                    case 'discharge':
+                        showMultiDischargeForm();
+                        break;
+                }
+            });
+
+            cookingModalConfirmBtn.addEventListener('click', () => occupyMultiplePallets(true));
+            roomTabsContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('room-tab')) {
+                    currentRoom = e.target.dataset.roomName;
+                    document.querySelectorAll('.room-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    roomSelect.value = currentRoom;
+                    renderCurrentRoom();
+                }
+            });
+
+            roomSelect.addEventListener('change', (e) => {
+                currentRoom = e.target.value;
+                document.querySelectorAll('.room-tab').forEach(t => {
+                    t.classList.toggle('active', t.dataset.roomName === currentRoom);
+                });
+                renderCurrentRoom();
+            });
+
+            roomLayout.addEventListener('click', e => {
+                if (e.target.closest('.pallet')) {
+                    handlePalletClick(e.target.closest('.pallet').id);
+                }
+            });
+
+            aisleFilterContainer.addEventListener('click', e => {
+                if (e.target.tagName === 'BUTTON') {
+                    const aisle = e.target.dataset.aisle;
+                    aisleFilterContainer.querySelector('.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    roomLayout.classList.remove('filter-left', 'filter-right');
+                    if (aisle === 'left') roomLayout.classList.add('filter-left');
+                    if (aisle === 'right') roomLayout.classList.add('filter-right');
+                }
+            });
+
+            statusFilterBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    handleStatusFilter(e.target.dataset.status);
+                });
+            });
+
+            clearFilterBtn.addEventListener('click', () => handleStatusFilter('all'));
+
+            // Modals Close Buttons
+            [modalCloseBtn, cookingModalCloseBtn, dischargeModalCloseBtn, detailsAlertCloseBtn, confirmModalCancelBtn, reportModalCloseBtn, historyModalCloseBtn, snapshotModalCloseBtn, settingsModalCloseBtn, searchModalCloseBtn, scrapModalCloseBtn].forEach(btn => {
+                btn.addEventListener('click', () => closeModal(btn.closest('.modal-backdrop')));
+            });
+
+            // Menu and Multi-Select Toggle
+            multiSelectToggleBtn.addEventListener('click', () => {
+                enterMultiSelectMode();
+                closeModal(controlsMenu);
+            });
+            cancelMultiSelectBtn.addEventListener('click', exitMultiSelectMode);
+            menuToggleBtn.addEventListener('click', () => controlsMenu.classList.toggle('show'));
+            document.addEventListener('click', (e) => {
+                if (!menuContainer.contains(e.target)) {
+                    controlsMenu.classList.remove('show');
+                }
+                if (!multiActionContainer.contains(e.target)) {
+                     multiActionDropdown.classList.remove('show');
+                     multiActionButton.classList.remove('open');
+                }
+            });
+
+            // Multi-action dropdown logic
+            multiActionButton.addEventListener('click', () => {
+                multiActionDropdown.classList.toggle('show');
+                multiActionButton.classList.toggle('open');
+            });
+            multiActionDropdown.addEventListener('click', (e) => {
+                if (e.target.classList.contains('menu-item')) {
+                    multiActionButton.querySelector('span').textContent = e.target.textContent;
+                    multiActionButton.dataset.value = e.target.dataset.value;
+                    multiActionDropdown.classList.remove('show');
+                    multiActionButton.classList.remove('open');
+                    multiActionGoBtn.disabled = false;
+                }
+            });
+            
+            // Other controls
+            clearRoomBtn.addEventListener('click', clearCurrentRoom);
+            toggleHistoryBtn.addEventListener('click', () => {
+                openModal(historyModal);
+                closeModal(controlsMenu);
+            });
+            toggleReportBtn.addEventListener('click', () => {
+                openModal(reportModal);
+                renderReport();
+                closeModal(controlsMenu);
+            });
+            toggleSettingsBtn.addEventListener('click', () => {
+                durationInput.value = getHoldDurationHours();
+                renderFieldList();
+                renderFieldManagementList(); // New
+                openModal(settingsModal);
+                closeModal(controlsMenu);
+            });
+            toggleSearchBtn.addEventListener('click', () => {
+                openModal(searchModal);
+                closeModal(controlsMenu);
+            });
+             calculateScrapBtn.addEventListener('click', () => {
+                calculateAndShowScrap();
+                closeModal(controlsMenu);
+            });
+
+            // Settings actions
+            saveDurationBtn.addEventListener('click', async () => {
+                const newDuration = parseFloat(durationInput.value);
+                if (newDuration && newDuration > 0) {
+                    appSettings.duration = newDuration;
+                    await saveSettings();
+                    showToast('Duration saved successfully!', 'success');
+                } else {
+                    showToast('Please enter a valid duration.', 'error');
+                }
+            });
+            addFieldBtn.addEventListener('click', async () => {
+                const fieldName = fieldNameInput.value.trim();
+                if (fieldName) {
+                    const currentFields = getFields();
+                    if (!currentFields.includes(fieldName)) {
+                        appSettings.fields = [...currentFields, fieldName];
+                        await saveSettings();
+                        fieldNameInput.value = '';
+                        renderFieldList();
+                        renderFieldManagementList(); // New
+                        showToast('Field added!', 'success');
+                    } else {
+                        showToast('Field name already exists.', 'error');
+                    }
+                }
+            });
+            fieldsList.addEventListener('click', async e => {
+                if (e.target.closest('.remove-field-btn')) {
+                    const fieldToRemove = e.target.closest('.remove-field-btn').dataset.field;
+                    appSettings.fields = getFields().filter(f => f !== fieldToRemove);
+                    await saveSettings();
+                    renderFieldList();
+                    renderFieldManagementList(); // New
+                }
+            });
+
+            // History actions
+            viewHistoryStateBtn.addEventListener('click', () => {
+                renderSnapshotView(historyRoomSelect.value, historyDatetimeInput.value);
+            });
+            clearHistoryBtn.addEventListener('click', clearHistory);
+            historySearchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                document.querySelectorAll('.history-entry').forEach(entry => {
+                    entry.style.display = entry.dataset.searchableContent.includes(searchTerm) ? 'flex' : 'none';
+                });
+            });
+            exportHistoryCsvBtn.addEventListener('click', () => {
+                const headers = ["Timestamp", "Type", "Room", "Pallets", "Message", "Product ID", "Product Name", "Cartons", "Unit", "Scrap (kg)"];
+                const rows = history.map(e => [
+                    formatDateTime(e.timestamp?.toDate()),
+                    e.type,
+                    e.room,
+                    e.palletIds.join(', '),
+                    e.message,
+                    e.details?.['Product ID'] || '',
+                    e.details?.['Name'] || '',
+                    e.cartons ?? '',
+                    e.unit ?? '',
+                    e.scrap ?? ''
+                ]);
+                exportToCSV(headers, rows, `history_log_${new Date().toISOString().slice(0, 10)}.csv`);
+            });
+            searchByIdBtn.addEventListener('click', searchByProductId); // New
+
+            // Report actions
+            generateReportBtn.addEventListener('click', renderReport);
+            exportCsvBtn.addEventListener('click', () => {
+                const roomFilter = reportRoomSelect.value;
+                const reportData = generateReportData(roomFilter);
+                const headers = ["Item Name", "Room", "Total Pallets", "Avg Remaining HH:MM:SS"];
+                let rows = [];
+                for (const itemName in reportData) {
+                    for (const roomName in reportData[itemName]) {
+                         const item = reportData[itemName][roomName];
+                         const avgRemainingMs = item.totalRemainingMs / item.count;
+                         rows.push([itemName, roomName, item.count, formatTime(avgRemainingMs)]);
+                    }
+                }
+                const filename = `summary_report_${roomFilter}_${new Date().toISOString().slice(0,10)}.csv`;
+                exportToCSV(headers, rows, filename);
+            });
+            // Search actions
+            performSearchBtn.addEventListener('click', performLifecycleSearch);
+            exportSearchCsvBtn.addEventListener('click', exportLifecycleResultsToCSV);
+
+            // Dashboard click filters
+            dashboard.addEventListener('click', (e) => {
+                const card = e.target.closest('.stat-card');
+                if (card && card.dataset.status) {
+                    handleStatusFilter(card.dataset.status);
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+
+            // Theme toggle
+            themeToggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-theme');
+                localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+            });
+            if (localStorage.getItem('theme') === 'dark') {
+                 document.body.classList.add('dark-theme');
+            }
+             exportSnapshotCsvBtn.addEventListener('click', () => {
+                const headers = ["Pallet", "Status", "Product ID", "Name", "Discharge Time", "Cartons", "Unit", "Scrap (kg)"];
+                const rows = lastSnapshotData.map(d => Object.values(d));
+                const timestamp = new Date(historyDatetimeInput.value).toISOString().slice(0, 16).replace('T', '_');
+                exportToCSV(headers, rows, `snapshot_${historyRoomSelect.value}_${timestamp}.csv`);
+            });
+
+        };
+        
+        // --- FIREBASE INITIALIZATION & DATA SYNC ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgVJAAqoVwu0Z4sBqhhr8WiBJDjTXnnk4",
+            authDomain: "mass-balance-9958e.firebaseapp.com",
+            projectId: "mass-balance-9958e",
+            storageBucket: "mass-balance-9958e.firebasestorage.app",
+            messagingSenderId: "591276145074",
+            appId: "1:591276145074:web:28710bb32b94407fb7ccab",
+            measurementId: "G-XV7CDGZ7MK"
+            };
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        
+        appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                getEl('user-id-display').textContent = `User ID: ${userId}`;
+                
+                // Unsubscribe from old listeners if they exist
+                if (unsubscribeState) unsubscribeState();
+                if (unsubscribeSettings) unsubscribeSettings();
+                if (unsubscribeHistory) unsubscribeHistory();
+
+                // Subscribe to app state
+                const stateDocRef = doc(db, `artifacts/${appId}/users/${userId}/appData/state`);
+                unsubscribeState = onSnapshot(stateDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        multiRoomState = docSnap.data();
+                    } else {
+                        // Initialize state if it doesn't exist
+                        const initialState = {};
+                        ROOM_NAMES.forEach(room => {
+                            initialState[room] = {};
+                            for (let i = 1; i <= 13; i++) {
+                                initialState[room][`L${i}`] = { occupied: false, details: null, startTime: null };
+                                initialState[room][`R${i}`] = { occupied: false, details: null, startTime: null };
+                            }
+                        });
+                        setDoc(stateDocRef, initialState);
+                        multiRoomState = initialState;
+                    }
+                    renderCurrentRoom();
+                    updateDashboard();
+                });
+
+                // Subscribe to settings
+                const settingsDocRef = doc(db, `artifacts/${appId}/users/${userId}/appData/settings`);
+                unsubscribeSettings = onSnapshot(settingsDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        appSettings = docSnap.data();
+                    } else {
+                        appSettings = { duration: 36, fields: [...DEFAULT_FIELDS, ...COOKING_FIELDS] };
+                        setDoc(settingsDocRef, appSettings);
+                    }
+                    DURATION_MS = getHoldDurationHours() * 3600000;
+                    renderCurrentRoom(); // Re-render room title with new duration
+                });
+
+                // Subscribe to history
+                const historyCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/history`);
+                const q = query(historyCollectionRef, orderBy("timestamp", "desc"));
+                unsubscribeHistory = onSnapshot(q, (snapshot) => {
+                    history = [];
+                    historyDocs = [];
+                    snapshot.forEach(doc => {
+                        history.push(doc.data());
+                        historyDocs.push(doc.id);
+                    });
+                    renderHistory();
+                });
+
+                // Hide loading and show app
+                loadingOverlay.style.display = 'none';
+                appContainer.style.display = 'grid';
+
+            } else {
+                // Handle user not signed in
+                loadingOverlay.querySelector('p').textContent = 'Authenticating...';
+            }
+        });
+
+        // Sign in logic
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Firebase Authentication Error:", error);
+            loadingOverlay.querySelector('p').textContent = 'Authentication Failed. Please refresh.';
+        }
+        
+        initializeAppWithFirebase();
         setInterval(() => {
             renderCurrentRoom();
             updateDashboard();
-            // checkAndSendNotifications();
         }, 1000);
-        
-        // Initial Render
-        renderRoomTabs();
-        renderCurrentRoom();
-        renderFieldList();
-        renderHistory();
-        updateDashboard();
-        
-        // Initialize status filter
-        handleStatusFilter('all');
-    };
-    
-    initializeApp();
-});
+
+        });
     </script>
 </body>
 </html>
-
